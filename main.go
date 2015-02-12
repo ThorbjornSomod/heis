@@ -5,17 +5,18 @@ import (
 		."fmt"
 		"runtime"
 		//"time"
-		"./network"
+		."./network"
 )
 
-const receivePort = "30000"
-const sendPort = "20008"
-//const myIP = GetMyIP()
-//const BroadcastIP = GetBroadcastIP(myIP)
-
 func main(){
-
 	runtime.GOMAXPROCS(runtime.NumCPU())
+	IPlist := make(chan []string)
+	BroadcastIP, BroadcastPort,ReceivePort,MyIP,client := Init()
+	go AddNewClient(BroadcastIP,BroadcastPort,client,IPlist)
 	Println("Hei")
-	Println(myIP)
+	Println(MyIP)
+	Println(BroadcastIP)
+	Println(BroadcastPort)
+	Println(ReceivePort)
+	select{}
 }

@@ -13,10 +13,6 @@ func main(){
 	IPlist := make(chan []string)
 	BroadcastIP, BroadcastPort,ReceivePort,MyIP,client := Init()
 	go AddNewClient(BroadcastIP,BroadcastPort,client,IPlist)
-	Println("Hei")
-	Println(MyIP)
-	Println(BroadcastIP)
-	Println(BroadcastPort)
-	Println(ReceivePort)
+
 	select{}
 }

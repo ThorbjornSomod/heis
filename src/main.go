@@ -23,9 +23,10 @@ func main(){
 		for{
 			time.Sleep(100*time.Millisecond)
 		}
-	case client == "slave":
-		Println("ccccccc")
-	}
+		case client == "slave":
+			Println("ccccccc")
+			//ReadMessage(BroadcastIP, WelcomePort)
+		}
 
 	
 

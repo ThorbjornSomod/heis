@@ -7,8 +7,6 @@ import (
 		"strings"
 )
 
-
-
 func GetMyIP() string{ //OK
 	addrs, _ := net.InterfaceAddrs() //returns table of interface addrs
 	return strings.Split(addrs[1].String(),"/")[0]
@@ -23,11 +21,11 @@ func GetBroadcastIP(MyIP string) string{  //OK
 func MasterOrSlave(WelcomePort string) string{ //OK
 	//Listen to broadcast for three seconds to see if somemone else is master
 	addr, _ := net.ResolveUDPAddr("udp",":" + WelcomePort)
-	conn, _ := net.ListenUDP("udp4", addr)
-	_ = conn.SetReadDeadline(time.Now().Add(3*time.Second))
+	conn, err := net.ListenUDP("udp4", addr)
+	conn.SetReadDeadline(time.Now().Add(1*time.Second))
 	client := ""
 	b := make([]byte,1024)
-	_,_,err := conn.ReadFromUDP(b)
+	_,_,err = conn.ReadFromUDP(b)
 	if err == nil{
 		//Someone else is master, I am slave
 		client = "slave"
@@ -35,6 +33,7 @@ func MasterOrSlave(WelcomePort string) string{ //OK
 		//I am master
 		client = "master"
 	}
+	conn.Close()
 	return client
 }
 
@@ -84,6 +83,15 @@ func Aknowledge(BroadcastPort string) string{ //Tror OK
 
 }
 */
+
+/*func ReadMessage(BroadcastIP string, WelcomePort string){
+	Println("Hei")
+	addr, _ := net.ResolveUDPAddr("udp", BroadcastIP + ":" + WelcomePort)
+	conn, _ := net.ListenUDP("udp4", addr)
+	msg := make([]byte, 1024)
+	conn.ReadFromUDP(msg)
+	Println(msg)
+}*/
 
 
 

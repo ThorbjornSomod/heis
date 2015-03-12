@@ -6,6 +6,7 @@ import (
 		"time"
 		//"strings"
 		.".././channels"
+		//."encoding/json"
 )
 
 func ConnReceive(BroadcastPort string,client string,MasterIsAlive chan string){//Receive messages from UDP and send to channels
@@ -27,14 +28,26 @@ func ConnReceive(BroadcastPort string,client string,MasterIsAlive chan string){/
 				MasterIsAlive <- "Master is dead."
 			}
 		}	
-	}		
+	}
+	/*
+	if client == "master"{
+		for{
+			b := make([]byte,1024)
+			length, _ , err := conn.ReadFromUDP(b)
+			b = b[0:length]
+			if err == nil{
+					IPchan <- string(b)
+			}
+		}		
+	}
+	*/		
 }
 
 func ConnSend(BroadcastPort string, BroadcastIP string){
 	addr, _ := net.ResolveUDPAddr("udp", BroadcastIP + ":" + BroadcastPort)
 	conn, _ := net.DialUDP("udp", nil,addr)
 	for {
-		message :=<- MasterAliveMessage
+		message :=<- AliveMessage
 
 		conn.Write([]byte(message+"\000"))
 	}
@@ -44,7 +57,7 @@ func ImAlive(client string,MasterAliveMessage chan string){
 	for{
 		if client == "master"{
 			message := "Welcome to the elevator system."
-			MasterAliveMessage <- message
+			AliveMessage <- message
 		}	
 		time.Sleep(100*time.Millisecond)
 	}	
@@ -58,3 +71,30 @@ func MasterAlive(MasterIsAlive chan string){
 	}
 }
 
+func MakeIPList(IPlistchan chan []string, IPchan chan string,MyIP string){
+	var IPlist [1]string
+	IPlist[0] = MyIP
+
+	for {
+		var temp [len(IPlist)+1]string
+		allreadyadded := 0
+		IP := <- IPchan
+		for i := 0; i < len(IPlist); i++ {
+			if IPlist[i] == IP{
+				allreadyadded = 1
+			}
+		}
+		if allreadyadded == 0{	
+			
+			temp[len(IPlist)] = IP
+			for i:=0;i<len(IPlist); i++{
+				temp[i] = IPlist[i]
+			}	
+			
+		}
+		IPlist := temp
+		Println(IPlist)
+		IPlistChan <- IPlist[0:]
+		time.Sleep(100*time.Millisecond)	
+	}
+}

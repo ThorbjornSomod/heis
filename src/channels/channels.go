@@ -9,5 +9,6 @@ import (
 )
 
 var MasterIsAlive = make(chan string)
-var MasterAliveMessage = make(chan string)
-var IPlist = make(chan []string)
+var AliveMessage = make(chan string)
+var IPlistChan = make(chan []string)
+var IPchan = make(chan string)

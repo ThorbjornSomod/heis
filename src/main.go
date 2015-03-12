@@ -17,24 +17,24 @@ func main(){
 
 	switch  {				
 			case client == "master":
-				for{
 					Println(BroadcastPort)
 					Println(client)
 					Println(BroadcastIP)	
-					go ConnReceive(BroadcastPort,client,MasterIsAlive)
-					go ConnSend(BroadcastPort,BroadcastIP)
-					go ImAlive(client,MasterAliveMessage)
+				go ConnReceive(BroadcastPort,client,MasterIsAlive)
+				go ConnSend(BroadcastPort,BroadcastIP)
+				go ImAlive(client,MasterAliveMessage)
 
 			
 					time.Sleep(100*time.Millisecond)
-				}
+
 			case client == "slave":
-				for{
-					go MasterAlive(MasterIsAlive)
-					time.Sleep(100*time.Millisecond)
-				}
+				go ConnReceive(BroadcastPort,client,MasterIsAlive)
+				go MasterAlive(MasterIsAlive)
+				time.Sleep(100*time.Millisecond)
+
 			
-	}		
-	
+	}
+	channela := make(chan string)		
+	<- channela
 
 }

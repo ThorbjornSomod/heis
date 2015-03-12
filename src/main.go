@@ -11,14 +11,14 @@ import (
 
 func main(){
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	BroadcastIP, BroadcastPort,WelcomePort,MyIP,client := Init()
-	Println(BroadcastPort,BroadcastIP,WelcomePort,MyIP,client)
+	BroadcastIP, BroadcastPort,MyIP,client := Init()
+	Println(BroadcastPort,BroadcastIP,BroadcastPort,MyIP,client)
 	Println(IPlist)
 	switch  {
 		case client == "master":
 			Println("bbbb")
-			go SendWelcomeMessage(BroadcastIP,WelcomePort)
-			go AddNewClient(BroadcastIP,BroadcastPort)
+			go SendOrders(BroadcastIP,BroadcastPort)
+			//go AddNewClient(BroadcastIP,BroadcastPort)
 		Println("a")
 		for{
 			time.Sleep(100*time.Millisecond)

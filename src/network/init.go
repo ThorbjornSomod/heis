@@ -18,9 +18,9 @@ func GetBroadcastIP(MyIP string) string{  //OK
 	return myIP[0]+"."+myIP[1]+"."+myIP[2]+".255"
 }
 
-func MasterOrSlave(WelcomePort string) string{ //OK
+func MasterOrSlave(BroadcastPort string) string{ //OK
 	//Listen to broadcast for three seconds to see if somemone else is master
-	addr, _ := net.ResolveUDPAddr("udp",":" + WelcomePort)
+	addr, _ := net.ResolveUDPAddr("udp",":" + BroadcastPort)
 	conn, err := net.ListenUDP("udp4", addr)
 	conn.SetReadDeadline(time.Now().Add(1*time.Second))
 	client := ""
@@ -37,18 +37,17 @@ func MasterOrSlave(WelcomePort string) string{ //OK
 	return client
 }
 
-func Init() (string,string,string,string,string){ //OK
-	BroadcastPort := "20008"
-	WelcomePort:= "30001"
+func Init() (string,string,string,string){ //OK
+	BroadcastPort := "30000"
 	MyIP := GetMyIP()
 	BroadcastIP := GetBroadcastIP(MyIP)
-	client := MasterOrSlave(WelcomePort)
-	return BroadcastIP, BroadcastPort,WelcomePort,MyIP,client
+	client := MasterOrSlave(BroadcastPort)
+	return BroadcastIP, BroadcastPort,MyIP,client
 }
 
-func SendWelcomeMessage(BroadcastIP string, WelcomePort string){ // OK
+func SendOrders(BroadcastIP string, BroadcastPort string){ // OK
 	Println("dfjsdøf")
-	addr, _ := net.ResolveUDPAddr("udp", BroadcastIP + ":" + WelcomePort)
+	addr, _ := net.ResolveUDPAddr("udp", BroadcastIP + ":" + BroadcastPort)
 	conn, _ := net.DialUDP("udp", nil,addr)
 	for {
 		conn.Write([]byte("Welcome to the elevator system \000"))

@@ -8,4 +8,6 @@ import (
 		
 )
 
+var MasterIsAlive = make(chan string)
+var MasterAliveMessage = make(chan string)
 var IPlist = make(chan []string)

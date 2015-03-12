@@ -2,7 +2,6 @@ package network
 
 import (
 		"net"
-		."fmt"
 		"time"
 		"strings"
 )
@@ -45,15 +44,6 @@ func Init() (string,string,string,string){ //OK
 	return BroadcastIP, BroadcastPort,MyIP,client
 }
 
-func SendOrders(BroadcastIP string, BroadcastPort string){ // OK
-	Println("dfjsdøf")
-	addr, _ := net.ResolveUDPAddr("udp", BroadcastIP + ":" + BroadcastPort)
-	conn, _ := net.DialUDP("udp", nil,addr)
-	for {
-		conn.Write([]byte("Welcome to the elevator system \000"))
-		time.Sleep(1000*time.Millisecond)
-	}
-}
 
 /*
 func SendMyIP(MyIP,BroadcastIP,BroadcastPort){ //OK
@@ -95,18 +85,7 @@ func Aknowledge(BroadcastPort string) string{ //Tror OK
 
 
 
-func ReceiveIP(BroadcastPort string, IPchannel chan string){ //Tror OK
-	addr, _ := net.ResolveUDPAddr("udp",":" + BroadcastPort)
-	conn, _ := net.ListenUDP("udp4", addr)
-	Println("a")
-	for{
-		b := make([]byte,1024)
-		_, _ , err := conn.ReadFromUDP(b)
-		if err == nil{
-			IPchannel <- string(b)
-				}
-		}
-}
+
 
 /*
 func IPAdded(BroadcastIP string,BroadcastPort string, IPchannel chan string, IPlistChannel chan []string){ // Tror OK
@@ -142,20 +121,6 @@ func IPListMaker(IPchannel chan string, IPchannel2 chan string, IPlistChannel ch
 	}
 }
 */
-
-func AddNewClient(BroadcastIP string,BroadcastPort string){
-	// receive IPs and send confirmation
-		IPchannel := make(chan string)
-		var a string
-		Println("Hellu")	
-			go ReceiveIP(BroadcastPort,IPchannel)
-			a = <- IPchannel
-			Println(a)
-			//go IPAdded()
-			//go IPlistMaker(IPchannel,IPListChannel)
-	
-	
-}
 
 
 

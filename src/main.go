@@ -11,23 +11,30 @@ import (
 
 func main(){
 	runtime.GOMAXPROCS(runtime.NumCPU())
+	client := "init"
 	BroadcastIP, BroadcastPort,MyIP,client := Init()
-	Println(BroadcastPort,BroadcastIP,BroadcastPort,MyIP,client)
-	Println(IPlist)
-	switch  {
-		case client == "master":
-			Println("bbbb")
-			go SendOrders(BroadcastIP,BroadcastPort)
-			//go AddNewClient(BroadcastIP,BroadcastPort)
-		Println("a")
-		for{
-			time.Sleep(100*time.Millisecond)
-		}
-		case client == "slave":
-			Println("ccccccc")
-			//ReadMessage(BroadcastIP, WelcomePort)
-		}
+	Println(MyIP)
 
+	switch  {				
+			case client == "master":
+				for{
+					Println(BroadcastPort)
+					Println(client)
+					Println(BroadcastIP)	
+					go ConnReceive(BroadcastPort,client,MasterIsAlive)
+					go ConnSend(BroadcastPort,BroadcastIP)
+					go ImAlive(client,MasterAliveMessage)
+
+			
+					time.Sleep(100*time.Millisecond)
+				}
+			case client == "slave":
+				for{
+					go MasterAlive(MasterIsAlive)
+					time.Sleep(100*time.Millisecond)
+				}
+			
+	}		
 	
 
 }

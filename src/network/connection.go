@@ -52,7 +52,6 @@ func ImAlive(client string,MasterAliveMessage chan string){
 func MasterAlive(MasterIsAlive chan string){
 	for{
 		alive := <- MasterIsAlive
-		Println(alive)
 		if alive == "Master is dead."{
 			Println("Master is dead")	
 		}	

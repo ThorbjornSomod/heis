@@ -14,7 +14,7 @@ func ConnReceive(BroadcastPort string,client string,MasterIsAlive chan string){/
 	if client == "slave"{
 		
 		for{
-			conn.SetReadDeadline(time.Now().Add(3*time.Second))
+			conn.SetReadDeadline(time.Now().Add(1*time.Second))
 			b := make([]byte,1024)
 			length, _ , err := conn.ReadFromUDP(b)
 			b = b[0:length]
@@ -24,7 +24,6 @@ func ConnReceive(BroadcastPort string,client string,MasterIsAlive chan string){/
 				}
 			}
 			if err != nil{
-				Println(err)
 				MasterIsAlive <- "Master is dead."
 			}
 		}	
@@ -47,12 +46,11 @@ func ImAlive(client string,MasterAliveMessage chan string){
 			message := "Welcome to the elevator system."
 			MasterAliveMessage <- message
 		}	
-		time.Sleep(1000*time.Millisecond)
+		time.Sleep(100*time.Millisecond)
 	}	
 }	
 func MasterAlive(MasterIsAlive chan string){
 	for{
-		Println("Hei")
 		alive := <- MasterIsAlive
 		Println(alive)
 		if alive == "Master is dead."{

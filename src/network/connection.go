@@ -25,11 +25,10 @@ func ConnReceive(BroadcastPort string,client string,MasterIsAlive chan string){/
 				}
 			}
 			if err != nil{
-				MasterIsAlive <- "Master is dead."
+				MasterIsAlive <- "I am dead."
 			}
 		}	
 	}
-	/*
 	if client == "master"{
 		for{
 			b := make([]byte,1024)
@@ -39,8 +38,7 @@ func ConnReceive(BroadcastPort string,client string,MasterIsAlive chan string){/
 					IPchan <- string(b)
 			}
 		}		
-	}
-	*/		
+	}		
 }
 
 func ConnSend(BroadcastPort string, BroadcastIP string){
@@ -48,15 +46,20 @@ func ConnSend(BroadcastPort string, BroadcastIP string){
 	conn, _ := net.DialUDP("udp", nil,addr)
 	for {
 		message :=<- AliveMessage
-
 		conn.Write([]byte(message+"\000"))
+
+
 	}
 }
 
-func ImAlive(client string,MasterAliveMessage chan string){
+func ImAlive(client string,MasterAliveMessage chan string,MyIP string){
 	for{
 		if client == "master"{
 			message := "Welcome to the elevator system."
+			AliveMessage <- message
+		}
+		if client == "slave"{
+			message := "IP"+MyIP
 			AliveMessage <- message
 		}	
 		time.Sleep(100*time.Millisecond)
@@ -65,8 +68,8 @@ func ImAlive(client string,MasterAliveMessage chan string){
 func MasterAlive(MasterIsAlive chan string){
 	for{
 		alive := <- MasterIsAlive
-		if alive == "Master is dead."{
-			Println("Master is dead")	
+		if alive == "I am dead."{
+			Println("I am dead")	
 		}	
 	}
 }
@@ -98,3 +101,4 @@ func MakeIPList(IPlistchan chan []string, IPchan chan string,MyIP string){
 		time.Sleep(100*time.Millisecond)	
 	}
 }
+

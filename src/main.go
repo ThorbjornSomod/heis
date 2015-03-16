@@ -7,6 +7,8 @@ import (
 		"time"
 		."./network"
 		."./channels"
+		."./elevator"
+		."./variables"
 )
 
 	func test(IPchan chan string){
@@ -23,29 +25,26 @@ import (
 	}	
 
 func main(){
+
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	client := "init"
 	BroadcastIP, BroadcastPort,MyIP,client := Init()
 	Println(MyIP)
 	go test(IPchan)
 	go test2(IPlistChan)
-
+	a := RandSeq(MessageIdLength)
+	Println(a)
+	Println(client)
 	switch{				
 			case client == "master":
-					Println(BroadcastPort)
-					Println(client)
-					Println(BroadcastIP)	
 				go ConnReceive(BroadcastPort,client,MasterIsAlive)
 				go ConnSend(BroadcastPort,BroadcastIP)
-				go ImAlive(client,AliveMessage)
+				go ImAlive(client,AliveMessage,MyIP)
 				go MakeIPList(IPlistChan, IPchan, MyIP)
-
-
 			
-					time.Sleep(100*time.Millisecond)
+				time.Sleep(100*time.Millisecond)
 
 			case client == "slave":
-				go ImAlive(client,AliveMessage)
+				go ImAlive(client,AliveMessage,MyIP)
 				go ConnReceive(BroadcastPort,client,MasterIsAlive)
 				go MasterAlive(MasterIsAlive)
 				time.Sleep(100*time.Millisecond)

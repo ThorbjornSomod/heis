@@ -7,6 +7,8 @@ import (
 		//"strings"
 		.".././channels"
 		//."encoding/json"
+		//.".././elevator"
+		//.".././variables"
 )
 
 func ConnReceive(BroadcastPort string,client string,MasterIsAlive chan string){//Receive messages from UDP and send to channels
@@ -96,9 +98,44 @@ func MakeIPList(IPlistchan chan []string, IPchan chan string,MyIP string){
 			
 		}
 		IPlist := temp
-		Println(IPlist)
 		IPlistChan <- IPlist[0:]
 		time.Sleep(100*time.Millisecond)	
 	}
 }
 
+func test(IPchan chan string){
+	for{
+	IPchan <- "1"
+	}
+}
+func test2(IPlistChan chan []string){
+	for{
+	a := <-IPlistChan
+	Println(a)
+	}
+}
+
+func Network(){
+	BroadcastIP, BroadcastPort,MyIP,client := Init()
+	go test(IPchan)
+	go test2(IPlistChan)
+	switch{				
+			case client == "master":
+				go ConnReceive(BroadcastPort,client,MasterIsAlive)
+				go ConnSend(BroadcastPort,BroadcastIP)
+				go ImAlive(client,AliveMessage,MyIP)
+				go MakeIPList(IPlistChan, IPchan, MyIP)
+				time.Sleep(100*time.Millisecond)
+
+			case client == "slave":
+				go ImAlive(client,AliveMessage,MyIP)
+				go ConnReceive(BroadcastPort,client,MasterIsAlive)
+				go MasterAlive(MasterIsAlive)
+				time.Sleep(100*time.Millisecond)
+
+			
+	}
+	channela := make(chan string)		
+	<- channela
+
+}

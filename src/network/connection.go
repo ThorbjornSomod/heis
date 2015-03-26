@@ -7,7 +7,7 @@ import (
 		//"strings"
 		.".././channels"
 		//."encoding/json"
-		//.".././elevator"
+		.".././elevator"
 		//.".././variables"
 )
 
@@ -114,7 +114,7 @@ func test2(IPlistChan chan []string){
 	Println(a)
 	}
 }
-/*
+
 func CreateStruct(ExternalOrdersToNetwork chan [N_FLOORS][N_BUTTONS]int, InternalOrdersToNetwork chan [N_FLOORS]int){
 	for{
 		a := <- InternalOrdersToNetwork
@@ -125,11 +125,12 @@ func CreateStruct(ExternalOrdersToNetwork chan [N_FLOORS][N_BUTTONS]int, Interna
 		time.Sleep(200*time.Millisecond)
 	} 
 }
-*/
+
 func Network(){
 	BroadcastIP, BroadcastPort,MyIP,client := Init()
 	go test(IPchan)
 	go test2(IPlistChan)
+	go CreateStruct(ExternalOrdersToNetwork,InternalOrdersToNetwork)
 	switch{				
 			case client == "master":
 				go ConnReceive(BroadcastPort,client,MasterIsAlive)

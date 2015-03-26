@@ -2,9 +2,9 @@ package elevator
 
 import(
 		//."fmt"
-		"time"
+		//"time"
 		//.".././network"
-		//.".././channels"
+		.".././channels"
 		)
 
 const N_BUTTONS int = 3
@@ -36,6 +36,8 @@ var button_channel_matrix = [N_FLOORS][N_BUTTONS]int{
 	{BUTTON_UP3, BUTTON_DOWN3, BUTTON_COMMAND3},
 	{BUTTON_UP4, BUTTON_DOWN4, BUTTON_COMMAND4},
 }
+
+var dirn int
 
 func elev_init() bool{ 
 	if io_init() == 0{ //initialization of i/o
@@ -209,12 +211,12 @@ func setExternalLights(externalOrders [N_FLOORS][N_BUTTONS]int){
 		}
 	}
 }
-/*
+
 func OrdersToNetworkUnit(internalOrders [N_FLOORS]int,externalOrders [N_FLOORS][N_BUTTONS]int, ExternalOrdersToNetwork chan [N_FLOORS][N_BUTTONS]int, InternalOrdersToNetwork chan [N_FLOORS]int){
 	InternalOrdersToNetwork <- internalOrders
 	ExternalOrdersToNetwork <- externalOrders
 }
-*/
+
 /*
 func OrdersFromNetworkUnit(ExecuteFromNetwork chan []int, NextFloor chan []int){ //Mottar execute list og sender første element på lista til å bli executed
 	execute := <-ExecuteFromNetwork
@@ -222,23 +224,9 @@ func OrdersFromNetworkUnit(ExecuteFromNetwork chan []int, NextFloor chan []int){
 
 }
 */
-/*
-func CreateStruct(ExternalOrdersToNetwork chan [N_FLOORS][N_BUTTONS]int, InternalOrdersToNetwork chan [N_FLOORS]int){
-	for{
-		a := <- InternalOrdersToNetwork
-		b := <- ExternalOrdersToNetwork
-		Println(a)
-		Println(b)
 
-		time.Sleep(200*time.Millisecond)
-	} 
-}
-*/
-func lightsAndOrders(internalOrders [N_FLOORS]int, externalOrders [N_FLOORS][N_BUTTONS]int){
-	elev_init()
-	elev_set_motor_direction(DIRN_STOP)
-	dirn := DIRN_STOP
-	//go CreateStruct(ExternalOrdersToNetwork,InternalOrdersToNetwork)
+func lightsAndOrders(internalOrders [N_FLOORS]int, externalOrders [N_FLOORS][N_BUTTONS]int,dirn int){
+	
 
 	for{
 		internalOrders = newInternalOrders(internalOrders)
@@ -248,9 +236,15 @@ func lightsAndOrders(internalOrders [N_FLOORS]int, externalOrders [N_FLOORS][N_B
 		internalOrders = clearInternalOrders(dirn,elev_get_floor_sensor_signal(),internalOrders)
 		externalOrders = clearExternalOrders(dirn,elev_get_floor_sensor_signal(),externalOrders)
 		elev_set_floor_indicator(elev_get_floor_sensor_signal())
-		//OrdersToNetworkUnit(internalOrders,externalOrders,ExternalOrdersToNetwork,InternalOrdersToNetwork)
+		OrdersToNetworkUnit(internalOrders,externalOrders,ExternalOrdersToNetwork,InternalOrdersToNetwork)
+	}
+	
+}
+func runElevator(){
+	elev_init()
+	elev_set_motor_direction(DIRN_STOP)
 
-
+	for{
 		//Safety feature; turn elevator when it reaches boundary
 		if elev_get_floor_sensor_signal() == N_FLOORS -1{
 			elev_set_motor_direction(DIRN_STOP)
@@ -261,18 +255,16 @@ func lightsAndOrders(internalOrders [N_FLOORS]int, externalOrders [N_FLOORS][N_B
 			elev_set_motor_direction(DIRN_STOP)
 			break
 		}
-
-		time.Sleep(100*time.Millisecond)
-	}
-	
+	}		
 }
 
-
 func Elevator(){
+	dirn := DIRN_STOP
 	internalOrders := [N_FLOORS]int{0,0,0,0}
 	externalOrders := [N_FLOORS][N_BUTTONS]int{{-1,-1,-1},{-1,-1,-1},{-1,-1,-1},{-1,-1,-1}}
 	
-	go lightsAndOrders(internalOrders,externalOrders)
+	go runElevator()
+	go lightsAndOrders(internalOrders,externalOrders,dirn)
 
 	
 

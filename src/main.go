@@ -17,7 +17,7 @@ func main(){
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	
-	go RunElevatorTest()
+	go Elevator()
 	go Network()
 	channela := make(chan string)		
 	<- channela

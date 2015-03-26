@@ -114,7 +114,18 @@ func test2(IPlistChan chan []string){
 	Println(a)
 	}
 }
+/*
+func CreateStruct(ExternalOrdersToNetwork chan [N_FLOORS][N_BUTTONS]int, InternalOrdersToNetwork chan [N_FLOORS]int){
+	for{
+		a := <- InternalOrdersToNetwork
+		b := <- ExternalOrdersToNetwork
+		Println(a)
+		Println(b)
 
+		time.Sleep(200*time.Millisecond)
+	} 
+}
+*/
 func Network(){
 	BroadcastIP, BroadcastPort,MyIP,client := Init()
 	go test(IPchan)
@@ -125,9 +136,11 @@ func Network(){
 				go ConnSend(BroadcastPort,BroadcastIP)
 				go ImAlive(client,AliveMessage,MyIP)
 				go MakeIPList(IPlistChan, IPchan, MyIP)
+				//go CreateStruct(ExternalOrdersToNetwork,InternalOrdersToNetwork)
 				time.Sleep(100*time.Millisecond)
 
 			case client == "slave":
+				//go CreateStruct(ExternalOrdersToNetwork,InternalOrdersToNetwork)
 				go ImAlive(client,AliveMessage,MyIP)
 				go ConnReceive(BroadcastPort,client,MasterIsAlive)
 				go MasterAlive(MasterIsAlive)

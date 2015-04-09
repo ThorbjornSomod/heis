@@ -114,11 +114,17 @@ func test2(IPlistChan chan []string){
 	Println(a)
 	}
 }
+func test3(ExecuteListChan chan []int){
+	array := [4]int{2,1,3,1}
+	ExecuteListChan <- array[0:] 
+}
 
-func CreateStruct(ExternalOrdersToNetwork chan [N_FLOORS][N_BUTTONS]int, InternalOrdersToNetwork chan [N_FLOORS]int){
+
+func CreateStructTest(ExternalOrdersToNetwork chan [N_FLOORS][N_BUTTONS]int, InternalOrdersToNetwork chan [N_FLOORS]int){
 	for{
 		a := <- InternalOrdersToNetwork
 		b := <- ExternalOrdersToNetwork
+		Println("Orders")
 		Println(a)
 		Println(b)
 
@@ -126,18 +132,20 @@ func CreateStruct(ExternalOrdersToNetwork chan [N_FLOORS][N_BUTTONS]int, Interna
 	} 
 }
 
+
 func Network(){
 	BroadcastIP, BroadcastPort,MyIP,client := Init()
 	go test(IPchan)
 	go test2(IPlistChan)
-	go CreateStruct(ExternalOrdersToNetwork,InternalOrdersToNetwork)
+	go test3(ExecuteListChan)
+	go CreateStructTest(ExternalOrdersToNetwork,InternalOrdersToNetwork)
 	switch{				
 			case client == "master":
 				go ConnReceive(BroadcastPort,client,MasterIsAlive)
 				go ConnSend(BroadcastPort,BroadcastIP)
 				go ImAlive(client,AliveMessage,MyIP)
 				go MakeIPList(IPlistChan, IPchan, MyIP)
-				//go CreateStruct(ExternalOrdersToNetwork,InternalOrdersToNetwork)
+				//go CreateStruct(ExternalOrdersToNetwork,InternalOrdersToNetwork,MyIP)
 				time.Sleep(100*time.Millisecond)
 
 			case client == "slave":

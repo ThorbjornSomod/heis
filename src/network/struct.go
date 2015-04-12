@@ -2,6 +2,7 @@ package network
 
 import (
 	"math/rand"
+	."fmt"
 )
 
 
@@ -28,16 +29,19 @@ type NetworkInterface struct {
 
 var StructChannel = make(chan NetworkInterface)
 
-func CreateStruct(InternalOrdersToNetwork chan [4]int,ExternalOrdersToNetwork chan[4][3]int,RandSeq string, MyIP string,StructChannel chan NetworkInterface) NetworkInterface{
-	n:=10
-	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-	b:= make([]rune, n)
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
-	}
-	Rand := string(b)
-	External :=<- ExternalOrdersToNetwork
-	Internal :=<- InternalOrdersToNetwork
-	StructToMaster := NetworkInterface{RandomSequence:Rand, Message:MyIP, NewExternalOrders:External, NewInternalOrders:Internal} 
-	return(StructToMaster)
+func CreateStruct(InternalOrdersToNetwork chan [4]int,ExternalOrdersToNetwork chan[4][3]int, MyIP string,StructChannel chan NetworkInterface) {
+	for{
+		n:=100
+		var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+		b:= make([]rune, n)
+		for i := range b {
+			b[i] = letters[rand.Intn(len(letters))]
+		}
+		Rand := string(b)
+		Println(Rand)
+		Internal :=<- InternalOrdersToNetwork
+		External :=<- ExternalOrdersToNetwork
+		StructToMaster := NetworkInterface{RandomSequence:Rand, Message:MyIP, NewExternalOrders:External, NewInternalOrders:Internal} 
+		StructChannel <- StructToMaster
+	}	
 }

@@ -308,7 +308,6 @@ func ExecuteOrdersFromNetworkUnit(ExecuteListChan chan []int,DirnChan chan int,l
 				}			
 			}
 		default:
-			Println("osdhg")
 			DirnChan <- DIRN_STOP
 					
 		}
@@ -328,7 +327,6 @@ func lightsAndOrders(internalOrders [N_FLOORS]int, externalOrders [N_FLOORS][N_B
 		elev_set_floor_indicator(elev_get_floor_sensor_signal())
 		OrdersToNetworkUnit(internalOrders,externalOrders,ExternalOrdersToNetwork,InternalOrdersToNetwork)
 		time.Sleep(25*time.Millisecond)
-		Println("hei")
 	}
 	
 }

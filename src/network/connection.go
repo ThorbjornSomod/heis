@@ -7,11 +7,15 @@ import (
 		//"strings"
 		.".././channels"
 		//."encoding/json"
-		.".././elevator"
+		//.".././elevator"
 		//.".././variables"
+		"encoding/json"
+		//."strings"
 )
 
-func ConnReceive(BroadcastPort string,client string,MasterIsAlive chan string){//Receive messages from UDP and send to channels
+var Struct = make(chan NetworkInterface)
+
+func ConnReceive(BroadcastPort string,client string,Struct chan NetworkInterface){//Receive messages from UDP and send to channels
 	addr, _ := net.ResolveUDPAddr("udp",":" + BroadcastPort)
 	conn, _ := net.ListenUDP("udp4", addr)
 	if client == "slave"{
@@ -19,16 +23,8 @@ func ConnReceive(BroadcastPort string,client string,MasterIsAlive chan string){/
 		for{
 			conn.SetReadDeadline(time.Now().Add(1*time.Second))
 			b := make([]byte,1024)
-			length, _ , err := conn.ReadFromUDP(b)
-			b = b[0:length]
-			if err == nil{
-				if string(b) == "Welcome to the elevator system.\000"{
-					MasterIsAlive <- string(b)
-				}
-			}
-			if err != nil{
-				MasterIsAlive <- "I am dead."
-			}
+			_, _ , err := conn.ReadFromUDP(b)
+			if err == nil{}	
 		}	
 	}
 	if client == "master"{
@@ -36,24 +32,27 @@ func ConnReceive(BroadcastPort string,client string,MasterIsAlive chan string){/
 			b := make([]byte,1024)
 			length, _ , err := conn.ReadFromUDP(b)
 			b = b[0:length]
-			if err == nil{
-					IPchan <- string(b)
+			if err == nil{ 
+				var m NetworkInterface
+				json.Unmarshal(b,&m)
+				//Struct <- m
+				 
 			}
 		}		
 	}		
 }
 
-func ConnSend(BroadcastPort string, BroadcastIP string){
+func ConnSend(BroadcastPort string, BroadcastIP string,NetworkChannel chan NetworkInterface){
 	addr, _ := net.ResolveUDPAddr("udp", BroadcastIP + ":" + BroadcastPort)
 	conn, _ := net.DialUDP("udp", nil,addr)
 	for {
-		message :=<- AliveMessage
-		conn.Write([]byte(message+"\000"))
-
-
+		information := <- StructChannel				
+		message,_ := json.Marshal(information)	
+		conn.Write(message)
 	}
 }
 
+/*
 func ImAlive(client string,MasterAliveMessage chan string,MyIP string){
 	for{
 		if client == "master"{
@@ -66,7 +65,8 @@ func ImAlive(client string,MasterAliveMessage chan string,MyIP string){
 		}	
 		time.Sleep(100*time.Millisecond)
 	}	
-}	
+}
+
 func MasterAlive(MasterIsAlive chan string){
 	for{
 		alive := <- MasterIsAlive
@@ -75,7 +75,7 @@ func MasterAlive(MasterIsAlive chan string){
 		}	
 	}
 }
-
+*/
 func MakeIPList(IPlistchan chan []string, IPchan chan string,MyIP string){
 	var IPlist [1]string
 	IPlist[0] = MyIP
@@ -120,17 +120,7 @@ func test3(ExecuteListChan chan []int){
 }
 
 
-func CreateStructTest(ExternalOrdersToNetwork chan [N_FLOORS][N_BUTTONS]int, InternalOrdersToNetwork chan [N_FLOORS]int){
-	for{
-		a := <- InternalOrdersToNetwork
-		b := <- ExternalOrdersToNetwork
-		Println("Orders")
-		Println(a)
-		Println(b)
 
-		time.Sleep(200*time.Millisecond)
-	} 
-}
 
 
 func Network(){
@@ -138,21 +128,20 @@ func Network(){
 	go test(IPchan)
 	go test2(IPlistChan)
 	go test3(ExecuteListChan)
-	go CreateStructTest(ExternalOrdersToNetwork,InternalOrdersToNetwork)
+
+	go CreateStruct(InternalOrdersToNetwork,ExternalOrdersToNetwork,MyIP,StructChannel)
 	switch{				
 			case client == "master":
-				go ConnReceive(BroadcastPort,client,MasterIsAlive)
-				go ConnSend(BroadcastPort,BroadcastIP)
-				go ImAlive(client,AliveMessage,MyIP)
+				go ConnReceive(BroadcastPort,client,Struct)
+				go ConnSend(BroadcastPort,BroadcastIP,StructChannel)
 				go MakeIPList(IPlistChan, IPchan, MyIP)
-				//go CreateStruct(ExternalOrdersToNetwork,InternalOrdersToNetwork,MyIP)
+
 				time.Sleep(100*time.Millisecond)
 
 			case client == "slave":
-				//go CreateStruct(ExternalOrdersToNetwork,InternalOrdersToNetwork)
-				go ImAlive(client,AliveMessage,MyIP)
-				go ConnReceive(BroadcastPort,client,MasterIsAlive)
-				go MasterAlive(MasterIsAlive)
+				//go ImAlive(client,AliveMessage,MyIP)
+				go ConnReceive(BroadcastPort,client,Struct)
+				//go MasterAlive(MasterIsAlive)
 				time.Sleep(100*time.Millisecond)
 
 			

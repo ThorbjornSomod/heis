@@ -11,7 +11,6 @@ import (
 		//."./variables"
 )
 
-	
 
 func main(){
 

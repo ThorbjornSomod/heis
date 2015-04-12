@@ -6,7 +6,7 @@ import (
 //"time"
 )
 
-var MasterIsAlive = make(chan string)
+
 var AliveMessage = make(chan string)
 var IPlistChan = make(chan []string)
 var ExecuteListChan = make(chan []int)

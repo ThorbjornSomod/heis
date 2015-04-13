@@ -35,6 +35,7 @@ func ConnReceive(BroadcastPort string,client string,Struct chan NetworkInterface
 			if err == nil{ 
 				var m NetworkInterface
 				json.Unmarshal(b,&m)
+				Println(m)
 				//Struct <- m
 				 
 			}
@@ -129,7 +130,7 @@ func Network(){
 	go test2(IPlistChan)
 	go test3(ExecuteListChan)
 
-	go CreateStruct(InternalOrdersToNetwork,ExternalOrdersToNetwork,MyIP,StructChannel)
+	go CreateStruct(InternalOrdersToNetwork,ExternalOrdersToNetwork,MyIP,StructChannel,Direction,FloorChan)
 	switch{				
 			case client == "master":
 				go ConnReceive(BroadcastPort,client,Struct)

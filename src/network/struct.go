@@ -2,7 +2,7 @@ package network
 
 import (
 	"math/rand"
-	."fmt"
+	//."fmt"
 )
 
 
@@ -24,12 +24,14 @@ type NetworkInterface struct {
 	ExecuteList [][]string
 	NewExternalOrders [4][3]int
 	NewInternalOrders [4]int
-	IPlist []string  		
+	IPlist []string 
+	Direction int
+	Floor int 		
 }
 
 var StructChannel = make(chan NetworkInterface)
 
-func CreateStruct(InternalOrdersToNetwork chan [4]int,ExternalOrdersToNetwork chan[4][3]int, MyIP string,StructChannel chan NetworkInterface) {
+func CreateStruct(InternalOrdersToNetwork chan [4]int,ExternalOrdersToNetwork chan[4][3]int, MyIP string,StructChannel chan NetworkInterface, Direction chan int, FloorChan chan int) {
 	for{
 		n:=100
 		var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -38,10 +40,11 @@ func CreateStruct(InternalOrdersToNetwork chan [4]int,ExternalOrdersToNetwork ch
 			b[i] = letters[rand.Intn(len(letters))]
 		}
 		Rand := string(b)
-		Println(Rand)
 		Internal :=<- InternalOrdersToNetwork
 		External :=<- ExternalOrdersToNetwork
-		StructToMaster := NetworkInterface{RandomSequence:Rand, Message:MyIP, NewExternalOrders:External, NewInternalOrders:Internal} 
+		dirn :=<- Direction
+		floor :=<- FloorChan
+		StructToMaster := NetworkInterface{RandomSequence:Rand, Message:MyIP, NewExternalOrders:External, NewInternalOrders:Internal, Direction:dirn, Floor:floor} 
 		StructChannel <- StructToMaster
 	}	
 }

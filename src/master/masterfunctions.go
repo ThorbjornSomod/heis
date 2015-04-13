@@ -14,6 +14,10 @@ import (
 		.".././network"
 )
 
+func CostFunction(){
+		
+}
+
 func Master(Struct chan NetworkInterface, NetworkChannel chan NetworkInterface){
 	/*	- lager execution list og sender til network unit
 		- ser om en slave er død

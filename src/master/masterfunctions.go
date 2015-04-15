@@ -2,7 +2,7 @@ package master
 
 import (
 		//"net"
-		//."fmt"
+		."fmt"
 		//"time"
 		//"strings"
 		.".././channels"
@@ -14,13 +14,3 @@ import (
 		.".././network"
 )
 
-func CostFunction(){
-		
-}
-
-func Master(Struct chan NetworkInterface, NetworkChannel chan NetworkInterface){
-	/*	- lager execution list og sender til network unit
-		- ser om en slave er død
-		- lage IP list
-	*/
-}

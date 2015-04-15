@@ -26,7 +26,7 @@ type NetworkInterface struct {
 	NewInternalOrders [4]int
 	IPlist []string 
 	Direction int
-	Floor int 		
+	Floor int		
 }
 
 var StructChannel = make(chan NetworkInterface)

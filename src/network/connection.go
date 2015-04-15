@@ -13,9 +13,10 @@ import (
 		//."strings"
 )
 
-var Struct = make(chan NetworkInterface)
+var SendStruct = make(chan NetworkInterface)
+var ReceiveStruct = make(chan NetworkInterface)
 
-func ConnReceive(BroadcastPort string,client string,Struct chan NetworkInterface){//Receive messages from UDP and send to channels
+func ConnReceive(BroadcastPort string,client string,RecevieStruct chan NetworkInterface){//Receive messages from UDP and send to channels
 	addr, _ := net.ResolveUDPAddr("udp",":" + BroadcastPort)
 	conn, _ := net.ListenUDP("udp4", addr)
 	if client == "slave"{
@@ -35,8 +36,7 @@ func ConnReceive(BroadcastPort string,client string,Struct chan NetworkInterface
 			if err == nil{ 
 				var m NetworkInterface
 				json.Unmarshal(b,&m)
-				Println(m)
-				//Struct <- m
+				ReceiveStruct <- m
 				 
 			}
 		}		
@@ -104,6 +104,23 @@ func MakeIPList(IPlistchan chan []string, IPchan chan string,MyIP string){
 	}
 }
 
+func CostFunction(){
+		
+}
+
+func Master(ReceiveStruct chan NetworkInterface){
+	for{
+		tempStruct :=<- ReceiveStruct
+		tempIPlist := tempStruct.Message
+		Println("yolo")
+		Println(tempIPlist)
+	}
+	/*	- lager execution list og sender til network unit
+		- ser om en slave er død
+		- lage IP list
+	*/
+}
+
 func test(IPchan chan string){
 	for{
 	IPchan <- "1"
@@ -131,22 +148,17 @@ func Network(){
 	go test3(ExecuteListChan)
 
 	go CreateStruct(InternalOrdersToNetwork,ExternalOrdersToNetwork,MyIP,StructChannel,Direction,FloorChan)
-	switch{				
-			case client == "master":
-				go ConnReceive(BroadcastPort,client,Struct)
-				go ConnSend(BroadcastPort,BroadcastIP,StructChannel)
-				go MakeIPList(IPlistChan, IPchan, MyIP)
+	go Master(ReceiveStruct)			
 
-				time.Sleep(100*time.Millisecond)
+	go ConnReceive(BroadcastPort,client,ReceiveStruct)
+	go ConnSend(BroadcastPort,BroadcastIP,StructChannel)
+	go MakeIPList(IPlistChan, IPchan, MyIP)
 
-			case client == "slave":
-				//go ImAlive(client,AliveMessage,MyIP)
-				go ConnReceive(BroadcastPort,client,Struct)
-				//go MasterAlive(MasterIsAlive)
-				time.Sleep(100*time.Millisecond)
+	time.Sleep(100*time.Millisecond)
+
 
 			
-	}
+	
 	channela := make(chan string)		
 	<- channela
 

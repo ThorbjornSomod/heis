@@ -8,7 +8,7 @@ import (
 
 
 var AliveMessage = make(chan string)
-var IPlistChan = make(chan []string)
+
 var ExecuteListChan = make(chan []int)
 var IPchan = make(chan string)
 var NextFloor = make(chan []int)

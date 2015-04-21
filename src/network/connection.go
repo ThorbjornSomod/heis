@@ -15,6 +15,8 @@ import (
 
 var SendStruct = make(chan NetworkInterface)
 var ReceiveStruct = make(chan NetworkInterface)
+var IPlistChan = make(chan [N_ELEVATORS]string)
+
 
 func ConnReceive(BroadcastPort string,RecevieStruct chan NetworkInterface){//Receive messages from UDP and send to channels
 	addr, _ := net.ResolveUDPAddr("udp",":" + BroadcastPort)
@@ -116,7 +118,7 @@ func Network(){
 	go CreateStruct(InternalOrdersToNetwork,ExternalOrdersToNetwork,MyIP,StructChannel,Direction,FloorChan)			
 	go ConnReceive(BroadcastPort,ReceiveStruct)
 	go ConnSend(BroadcastPort,BroadcastIP,StructChannel)
-	go DistributeOrders(ReceiveStruct, IPchan, ExecuteListChan, IPlistChan)
+	go DistributeOrders(ReceiveStruct, IPchan, ExecuteListChan, IPlistChan,MyIP)
 
 	time.Sleep(100*time.Millisecond)
 

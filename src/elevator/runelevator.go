@@ -237,42 +237,7 @@ func ExecuteOrdersFromNetworkUnit(ExecuteListChan chan []int,DirnChan chan int,d
 				elev_set_motor_direction(DIRN_STOP)
 			}
 
-
-			/*
-			if lastFloor == executeFromNetwork[0] && dirn == DIRN_UP{
-				elev_set_motor_direction(DIRN_DOWN)				
-				for{
-					if elev_get_floor_sensor_signal() != -1{
-						lastFloor = elev_get_floor_sensor_signal()
-					}
-					DirnChan <- DIRN_DOWN
-					if elev_get_floor_sensor_signal() == executeFromNetwork[0]{
-						elev_set_motor_direction(DIRN_UP)
-						time.Sleep(10*time.Millisecond)
-						elev_set_motor_direction(DIRN_STOP)
-						DirnChan <- DIRN_STOP
-					}
-				}
-				break
-				
-			}
-			if lastFloor == executeFromNetwork[0] && dirn == DIRN_DOWN{
-				elev_set_motor_direction(DIRN_UP)
-				for{
-					if elev_get_floor_sensor_signal() != -1{
-						lastFloor = elev_get_floor_sensor_signal()
-					}			
-					if elev_get_floor_sensor_signal() == executeFromNetwork[0]{
-						elev_set_motor_direction(DIRN_DOWN)
-						time.Sleep(10*time.Millisecond)
-						elev_set_motor_direction(DIRN_STOP)
-					}
-				}
-				break
-					
-			}	
-			*/			
-			if lastFloor < executeFromNetwork[0]{
+			if lastFloor < executeFromNetwork[0] && executeFromNetwork[0] != -1{
 
 				elev_set_motor_direction(DIRN_UP)
 				for{
@@ -295,7 +260,8 @@ func ExecuteOrdersFromNetworkUnit(ExecuteListChan chan []int,DirnChan chan int,d
 				}
 			
 			}
-			if lastFloor > executeFromNetwork[0]{
+			
+			if lastFloor > executeFromNetwork[0] && executeFromNetwork[0] != -1{
 				elev_set_motor_direction(DIRN_DOWN)
 				for{
 					DirnChan <- DIRN_DOWN

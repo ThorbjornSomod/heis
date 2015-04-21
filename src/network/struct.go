@@ -27,6 +27,7 @@ type NetworkInterface struct {
 }
 
 var StructChannel = make(chan NetworkInterface)
+var StructListChan = make(chan [N_ELEVATORS]NetworkInterface)
 
 func CreateStruct(InternalOrdersToNetwork chan [4]int,ExternalOrdersToNetwork chan[4][2]int, MyIP string,StructChannel chan NetworkInterface, Direction chan int, FloorChan chan int) {
 	for{

@@ -2,6 +2,7 @@ package network
 
 import (
 	//."fmt"
+	"time"
 )
 
 
@@ -35,5 +36,6 @@ func CreateStruct(InternalOrdersToNetwork chan [4]int,ExternalOrdersToNetwork ch
 		floor :=<- FloorChan
 		Struct := NetworkInterface{IP:MyIP, NewExternalOrders:External, NewInternalOrders:Internal, Direction:dirn, Floor:floor} 
 		StructChannel <- Struct
+		time.Sleep(50*time.Millisecond)
 	}	
 }

@@ -12,7 +12,7 @@ func MakeIPList( IPchan chan string,IPlistChan chan []string){
 	for i:=0;i<len(IPlist);i++{
 		IPlist[i] = "nil"
 	}
-	var IPtimer [N_ELEVATORS]int //Timer 
+	var IPtimer [N_ELEVATORS]int64 //Timer 
 	for i:=0;i<len(IPtimer);i++{
 		IPtimer[i] = 0
 	}			
@@ -26,17 +26,17 @@ func MakeIPList( IPchan chan string,IPlistChan chan []string){
 		for i := 0; i < len(IPlist); i++ { //Increase timer every time elevator sends a struct
 			if IPlist[i] == IP{
 				allreadyadded = true
-				IPtimer[i] = IPtimer[i] + 1
+				IPtimer[i] = time.Now().Add(time.Second*2).UnixNano()/int64(time.Second)
+				
 			}
 		}
 
 		
-		for i := 0; i < len(IPlist); i++{ //Removes IP from list if 100 increments without any connection
-			if IPlist[i] != "nil"{
-				IPtimerCheck[i] = IPtimerCheck[i] +1
-			}
-			if IPtimerCheck[i] - IPtimer[i] > 100{
+		for i := 0; i < len(IPtimer); i++{ //Removes IP from list if connection is lost
+			IPtimerCheck[i] = time.Now().UnixNano()/int64(time.Second)
+			if IPtimer[i] < IPtimerCheck[i] && IPlist[i] != "nil"{
 				IPlist[i] = "nil"
+				Println("hei")
 			}
 
 		}

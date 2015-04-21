@@ -42,6 +42,7 @@ func ConnSend(BroadcastPort string, BroadcastIP string,NetworkChannel chan Netwo
 		information := <- StructChannel				
 		message,_ := json.Marshal(information)	
 		conn.Write(message)
+		time.Sleep(100*time.Millisecond)
 	}
 }
 

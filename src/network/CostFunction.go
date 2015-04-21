@@ -26,7 +26,7 @@ func MakeIPList( IPchan chan string,IPlistChan chan []string){
 		for i := 0; i < len(IPlist); i++ { //Increase timer every time elevator sends a struct
 			if IPlist[i] == IP{
 				allreadyadded = true
-				IPtimer[i] = time.Now().Add(time.Second*2).UnixNano()/int64(time.Second)
+				IPtimer[i] = time.Now().Add(time.Second*1).UnixNano()/int64(time.Second)
 				
 			}
 		}

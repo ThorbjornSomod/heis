@@ -2,7 +2,7 @@ package network
 
 import (
 		"net"
-		"time"
+		//"time"
 		"strings"
 )
 
@@ -17,6 +17,7 @@ func GetBroadcastIP(MyIP string) string{  //OK
 	return myIP[0]+"."+myIP[1]+"."+myIP[2]+".255"
 }
 
+/*
 func MasterOrSlave(BroadcastPort string) string{ //OK
 	//Listen to broadcast for three seconds to see if somemone else is master
 	addr, _ := net.ResolveUDPAddr("udp",":" + BroadcastPort)
@@ -35,13 +36,13 @@ func MasterOrSlave(BroadcastPort string) string{ //OK
 	conn.Close()
 	return client
 }
+*/
 
-func Init() (string,string,string,string){ //OK
+func Init() (string,string,string){ //OK
 	BroadcastPort := "30000"
 	MyIP := GetMyIP()
 	BroadcastIP := GetBroadcastIP(MyIP)
-	client := MasterOrSlave(BroadcastPort)
-	return BroadcastIP, BroadcastPort,MyIP,client
+	return BroadcastIP, BroadcastPort,MyIP
 }
 
 

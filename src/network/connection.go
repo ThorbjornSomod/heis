@@ -16,29 +16,21 @@ import (
 var SendStruct = make(chan NetworkInterface)
 var ReceiveStruct = make(chan NetworkInterface)
 
-func ConnReceive(BroadcastPort string,client string,RecevieStruct chan NetworkInterface){//Receive messages from UDP and send to channels
+func ConnReceive(BroadcastPort string,RecevieStruct chan NetworkInterface){//Receive messages from UDP and send to channels
 	addr, _ := net.ResolveUDPAddr("udp",":" + BroadcastPort)
-	conn, _ := net.ListenUDP("udp4", addr)
-	if client == "slave"{
-		
-		for{
-			conn.SetReadDeadline(time.Now().Add(1*time.Second))
-			b := make([]byte,1024)
-			_, _ , err := conn.ReadFromUDP(b)
-			if err == nil{}	
-		}	
-	}
-	if client == "master"{
-		for{
-			b := make([]byte,1024)
-			length, _ , err := conn.ReadFromUDP(b)
-			b = b[0:length]
-			if err == nil{ 
-				var m NetworkInterface
-				json.Unmarshal(b,&m)
-				ReceiveStruct <- m
-				 
-			}
+	conn, _ := net.ListenUDP("udp", addr)	
+	for{	
+		conn.SetReadDeadline(time.Now().Add(time.Second*2))
+		b := make([]byte,1024)
+		length, _ , err := conn.ReadFromUDP(b)
+		b = b[0:length]
+		if err == nil{ 
+			var m NetworkInterface
+			json.Unmarshal(b,&m)
+			ReceiveStruct <- m
+			IPchan <- m.IP	 
+		}else{
+			Println("Something is wrong")
 		}		
 	}		
 }
@@ -77,6 +69,7 @@ func MasterAlive(MasterIsAlive chan string){
 	}
 }
 */
+/*
 func MakeIPList(IPlistchan chan []string, IPchan chan string,MyIP string){
 	var IPlist [1]string
 	IPlist[0] = MyIP
@@ -103,35 +96,10 @@ func MakeIPList(IPlistchan chan []string, IPchan chan string,MyIP string){
 		time.Sleep(100*time.Millisecond)	
 	}
 }
+*/
 
-func CostFunction(){
-		
-}
 
-func Master(ReceiveStruct chan NetworkInterface){
-	for{
-		tempStruct :=<- ReceiveStruct
-		tempIPlist := tempStruct.Message
-		Println("yolo")
-		Println(tempIPlist)
-	}
-	/*	- lager execution list og sender til network unit
-		- ser om en slave er død
-		- lage IP list
-	*/
-}
 
-func test(IPchan chan string){
-	for{
-	IPchan <- "1"
-	}
-}
-func test2(IPlistChan chan []string){
-	for{
-	a := <-IPlistChan
-	Println(a)
-	}
-}
 func test3(ExecuteListChan chan []int){
 	array := [4]int{2,1,3,1}
 	ExecuteListChan <- array[0:] 
@@ -142,17 +110,13 @@ func test3(ExecuteListChan chan []int){
 
 
 func Network(){
-	BroadcastIP, BroadcastPort,MyIP,client := Init()
-	go test(IPchan)
-	go test2(IPlistChan)
+	BroadcastIP, BroadcastPort,MyIP := Init()
 	go test3(ExecuteListChan)
 
-	go CreateStruct(InternalOrdersToNetwork,ExternalOrdersToNetwork,MyIP,StructChannel,Direction,FloorChan)
-	go Master(ReceiveStruct)			
-
-	go ConnReceive(BroadcastPort,client,ReceiveStruct)
+	go CreateStruct(InternalOrdersToNetwork,ExternalOrdersToNetwork,MyIP,StructChannel,Direction,FloorChan)			
+	go ConnReceive(BroadcastPort,ReceiveStruct)
 	go ConnSend(BroadcastPort,BroadcastIP,StructChannel)
-	go MakeIPList(IPlistChan, IPchan, MyIP)
+	go DistributeOrders(ReceiveStruct, IPchan, ExecuteListChan, IPlistChan)
 
 	time.Sleep(100*time.Millisecond)
 

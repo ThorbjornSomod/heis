@@ -58,7 +58,7 @@ func elev_init() bool{
 	if elev_get_floor_sensor_signal() != 0{
 		elev_set_motor_direction(DIRN_DOWN)
 		for{
-			if elev_get_floor_sensor_signal() == 0{
+			if elev_get_floor_sensor_signal() != -1{
 				elev_set_motor_direction(DIRN_UP)
 				time.Sleep(10*time.Millisecond)					
 				elev_set_motor_direction(DIRN_STOP)
@@ -182,34 +182,31 @@ func setInternalLights(internalOrders [N_FLOORS]int){
 	}
 }
 
-func newExternalOrders(externalOrders [N_FLOORS][N_BUTTONS]int) [N_FLOORS][N_BUTTONS]int{
+func newExternalOrders(externalOrders [N_FLOORS][2]int) [N_FLOORS][2]int{
 	for i:=0;i<N_FLOORS-1;i++{
 		if elev_get_button_signal(BUTTON_CALL_UP,i) == true{
-			externalOrders[i][0] = BUTTON_CALL_UP
-			externalOrders[i][2] = 1
+			externalOrders[i][0] = 1
 		}
 	}
 	for i:=1;i<N_FLOORS;i++{
 		if elev_get_button_signal(BUTTON_CALL_DOWN,i) == true{
-			externalOrders[i][1] = BUTTON_CALL_DOWN
-			externalOrders[i][2] = 1
+			externalOrders[i][1] = 1
 		}
 	}	
 	return externalOrders
 }
 
-func clearExternalOrders(dirn int, floor int, externalOrders [N_FLOORS][N_BUTTONS]int) [N_FLOORS][N_BUTTONS]int{
+func clearExternalOrders(dirn int, floor int, externalOrders [N_FLOORS][2]int) [N_FLOORS][2]int{
 	if dirn == 0 && floor != -1{
-		externalOrders[floor][0] = -1
-		externalOrders[floor][1] = -1
-		externalOrders[floor][2] = -1
+		externalOrders[floor][0] = 0
+		externalOrders[floor][1] = 0
 	}
 	return externalOrders
 }
 
-func setExternalLights(externalOrders [N_FLOORS][N_BUTTONS]int){
+func setExternalLights(externalOrders [N_FLOORS][2]int){
 	for i:=0;i<N_FLOORS-1;i++{
-		if externalOrders[i][0] == 0{
+		if externalOrders[i][0] == 1{
 			elev_set_button_lamp(BUTTON_CALL_UP,i,true)
 		}else{
 			elev_set_button_lamp(BUTTON_CALL_UP,i,false)
@@ -224,15 +221,15 @@ func setExternalLights(externalOrders [N_FLOORS][N_BUTTONS]int){
 	}
 }
 
-func InformationToNetworkUnit(internalOrders [N_FLOORS]int,externalOrders [N_FLOORS][N_BUTTONS]int, ExternalOrdersToNetwork chan [N_FLOORS][N_BUTTONS]int, InternalOrdersToNetwork chan [N_FLOORS]int, dirn int, Direction chan int){
+func InformationToNetworkUnit(internalOrders [N_FLOORS]int,externalOrders [N_FLOORS][2]int, ExternalOrdersToNetwork chan [N_FLOORS][2]int, InternalOrdersToNetwork chan [N_FLOORS]int, dirn int, Direction chan int){
 	InternalOrdersToNetwork <- internalOrders
 	ExternalOrdersToNetwork <- externalOrders
 	Direction <- dirn
 }
 
 
-func ExecuteOrdersFromNetworkUnit(ExecuteListChan chan []int,DirnChan chan int,lastFloor int,dirn int, Direction chan int, FloorChan chan int){
-
+func ExecuteOrdersFromNetworkUnit(ExecuteListChan chan []int,DirnChan chan int,dirn int, Direction chan int, FloorChan chan int){
+	lastFloor := elev_get_floor_sensor_signal()
 	for{
 		select {
 		case executeFromNetwork :=<- ExecuteListChan:
@@ -288,6 +285,9 @@ func ExecuteOrdersFromNetworkUnit(ExecuteListChan chan []int,DirnChan chan int,l
 						elev_set_motor_direction(DIRN_DOWN)
 						time.Sleep(10*time.Millisecond)					
 						elev_set_motor_direction(DIRN_STOP)
+						//set door open lamp
+						time.Sleep(100*time.Millisecond)
+						//clear door open lamp
 						DirnChan <- DIRN_STOP
 						FloorChan <- lastFloor
 						break
@@ -307,6 +307,9 @@ func ExecuteOrdersFromNetworkUnit(ExecuteListChan chan []int,DirnChan chan int,l
 						elev_set_motor_direction(DIRN_UP)
 						time.Sleep(10*time.Millisecond)					
 						elev_set_motor_direction(DIRN_STOP)
+						//set door open lamp
+						time.Sleep(100*time.Millisecond)
+						//clear door open lamp						
 						DirnChan <- DIRN_STOP
 						FloorChan <- lastFloor
 						break
@@ -322,7 +325,7 @@ func ExecuteOrdersFromNetworkUnit(ExecuteListChan chan []int,DirnChan chan int,l
 }
 
 
-func lightsAndOrders(internalOrders [N_FLOORS]int, externalOrders [N_FLOORS][N_BUTTONS]int,DirnChan chan int){	
+func lightsAndOrders(internalOrders [N_FLOORS]int, externalOrders [N_FLOORS][2]int,DirnChan chan int){	
 	for{
 		dirn :=<- DirnChan
 		internalOrders = newInternalOrders(internalOrders)
@@ -341,13 +344,12 @@ func lightsAndOrders(internalOrders [N_FLOORS]int, externalOrders [N_FLOORS][N_B
 func runElevator(DirnChan chan int){
 	elev_init()
 	elev_set_motor_direction(DIRN_STOP)
-	lastFloor := 0
-	go ExecuteOrdersFromNetworkUnit(ExecuteListChan,DirnChan,lastFloor,dirn,Direction,FloorChan)		
+	go ExecuteOrdersFromNetworkUnit(ExecuteListChan,DirnChan,dirn,Direction,FloorChan)		
 }
 
 func Elevator(){
 	internalOrders := [N_FLOORS]int{0,0,0,0}
-	externalOrders := [N_FLOORS][N_BUTTONS]int{{-1,-1,-1},{-1,-1,-1},{-1,-1,-1},{-1,-1,-1}}
+	externalOrders := [N_FLOORS][2]int{{0,0},{0,0},{0,0},{0,0}} //{Up,Down}
 	
 	
 	go runElevator(DirnChan)

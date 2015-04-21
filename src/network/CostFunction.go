@@ -22,18 +22,18 @@ func MakeIPList( IPchan chan string,IPlistChan chan []string){
 		allreadyadded := false
 
 		IP := <- IPchan
-
-		for i := 0; i < len(IPlist); i++ { //Increase timer every time elevator sends a struct
+		Println(IP)
+		for i := 0; i < len(IPlist); i++{ //Increase timer every time elevator sends a struct
 			if IPlist[i] == IP{
 				allreadyadded = true
-				IPtimer[i] = time.Now().Add(time.Second*1).UnixNano()/int64(time.Second)
+				IPtimer[i] = time.Now().Add(time.Second*2).UnixNano()/int64(time.Millisecond)
 				
 			}
 		}
 
 		
 		for i := 0; i < len(IPtimer); i++{ //Removes IP from list if connection is lost
-			IPtimerCheck[i] = time.Now().UnixNano()/int64(time.Second)
+			IPtimerCheck[i] = time.Now().UnixNano()/int64(time.Millisecond)
 			if IPtimer[i] < IPtimerCheck[i] && IPlist[i] != "nil"{
 				IPlist[i] = "nil"
 				Println("hei")

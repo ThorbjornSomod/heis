@@ -22,20 +22,21 @@ type NetworkInterface struct {
 	IP string 
 	NewExternalOrders [4][2]int
 	NewInternalOrders [4]int
-	Direction int
+	//Direction int
+	NextDirection int
 	Floor int		
 }
 
 var StructChannel = make(chan NetworkInterface)
 var StructListChan = make(chan [N_ELEVATORS]NetworkInterface)
 
-func CreateStruct(InternalOrdersToNetwork chan [4]int,ExternalOrdersToNetwork chan[4][2]int, MyIP string,StructChannel chan NetworkInterface, Direction chan int, FloorChan chan int) {
+func CreateStruct(InternalOrdersToNetwork chan [4]int,ExternalOrdersToNetwork chan[4][2]int, MyIP string,StructChannel chan NetworkInterface, FloorChan chan int) {
 	for{
 		Internal :=<- InternalOrdersToNetwork
 		External :=<- ExternalOrdersToNetwork
-		dirn :=<- Direction
+		//dirn :=<- Direction
 		floor :=<- FloorChan
-		Struct := NetworkInterface{IP:MyIP, NewExternalOrders:External, NewInternalOrders:Internal, Direction:dirn, Floor:floor} 
+		Struct := NetworkInterface{IP:MyIP, NewExternalOrders:External, NewInternalOrders:Internal, Floor:floor} 
 		StructChannel <- Struct
 		time.Sleep(50*time.Millisecond)
 	}	

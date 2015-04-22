@@ -103,8 +103,11 @@ func MakeIPList(IPlistchan chan []string, IPchan chan string,MyIP string){
 
 
 func test3(ExecuteListChan chan []int){
-	array := [4]int{2,1,3,1}
-	ExecuteListChan <- array[0:] 
+	for{
+		a :=<- ExecuteListChan
+		Println(a)
+		time.Sleep(100*time.Millisecond) 
+	}
 }
 
 
@@ -113,14 +116,13 @@ func test3(ExecuteListChan chan []int){
 
 func Network(){
 	BroadcastIP, BroadcastPort,MyIP := Init()
-	go test3(ExecuteListChan)
+	//go test3(ExecuteListChan)
 
-	go CreateStruct(InternalOrdersToNetwork,ExternalOrdersToNetwork,MyIP,StructChannel,Direction,FloorChan)			
+	go CreateStruct(InternalOrdersToNetwork,ExternalOrdersToNetwork,MyIP,StructChannel/*,Direction*/,FloorChan)			
 	go ConnReceive(BroadcastPort,ReceiveStruct)
 	go ConnSend(BroadcastPort,BroadcastIP,StructChannel)
-	go DistributeOrders(ReceiveStruct, IPchan, ExecuteListChan, IPlistChan,MyIP)
+	go DistributeOrders(ReceiveStruct, IPchan, ExecuteListChan, IPlistChan,MyIP,DirectionChan)
 
-	time.Sleep(100*time.Millisecond)
 
 
 			

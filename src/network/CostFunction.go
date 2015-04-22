@@ -1,7 +1,7 @@
 package network
 
 import(
-		."fmt"
+		//."fmt"
 		"time"
 )
 
@@ -108,10 +108,10 @@ func MakeLists( IPchan chan string,IPlistChan chan [N_ELEVATORS]string, ReceiveS
 	}
 }
 
-func CostFunction(ReceiveStruct chan NetworkInterface, IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_ELEVATORS]NetworkInterface, MyIP string,ExecuteListChan chan []int){
+func CostFunction(IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_ELEVATORS]NetworkInterface, MyIP string,ExecuteListChan chan []int,DirectionChan chan int){
 	var internalOrders [N_ELEVATORS][4]int
 	var externalOrders [4][2]int
-	var ExecuteList []int
+	nextDirection := 0
 	for{
 		Structlist :=<- StructListChan
 		IPlist :=<- IPlistChan
@@ -127,56 +127,127 @@ func CostFunction(ReceiveStruct chan NetworkInterface, IPlistChan chan [N_ELEVAT
 
 			}
 		}
-	for i:= 0; i<len(IPlist);i++{
-		if IPlist[i] == MyIP{
-			MyStruct := Structlist[i]
-			floor := MyStruct.Floor
-			dir := MyStruct.Direction
-			internal := internalOrders[i]
-			for j := 0; j < len(internal); j++{
-				if len(ExecuteList) > 0{
-					if internal[j] == 1 && contains(ExecuteList,j) == false{
-						ExecuteList = append(ExecuteList[0:],j)
-					}
-					if internal[j] == 0 && contains(ExecuteList,j) == true{
-						Println("hei")
-						position := containsPosition(ExecuteList,j)
-						Println(position)
-						temp := ExecuteList[len(ExecuteList)-1:][0]
-						Println(temp)
-						ExecuteList = append(ExecuteList[:position], ExecuteList[position+1:]...)
-						//ExecuteList = append(ExecuteList[0:],temp)
-					}
-				}else{
-					if internal[j] == 1 && contains(ExecuteList,j) == false{
-						ExecuteList = append(ExecuteList[0:],j)
-					}
-				}
-			}
-			/*
-			for j := 0; j < len(ExecuteList); j++{
-				if dir == 0{
+		for i:= 0; i<len(IPlist);i++{
+			if IPlist[i] == MyIP{
+				MyStruct := Structlist[i]
+				floor := MyStruct.Floor
+				internal := MyStruct.NewInternalOrders
 
+				nextDirection = 0
+				closestUp := 100
+				closestDown := 100
+				closest := 100
+				for j:= 0;j<len(internal); j++{
+					if internal[j] == 1{
+						if floor > j{
+							if (floor-j < closestDown){
+								closestDown = j
+								closest = closestDown
+							}
+						}
+						if floor < j{
+							if (j-floor < closestUp){
+								closestUp = j
+								closest = closestUp
+							}
+						}	
+					}
 				}
-				if dir == 1{
+				if closestDown > -1 && closestUp < 4{
+					if closestUp-floor < floor-closestDown{
+						closest = closestUp
+					}
+					if floor-closestDown < closestUp-floor{
+						closest = closestDown
+					}
+				}
+				if closestUp > 4{
+					closest = closestDown
+				}
+				if closestDown > 4{
+					closest = closestUp
+				}
+				if closest < 4 && closest > -1{
+					if closest < floor{
+						nextDirection = -1
+					}
+					if closest > floor{
+						nextDirection = 1
+					}
+				}
 
-				}
-				if dir == -1{}
+				if closestUp-floor == floor-closestDown{
+					//endre denne
+					closest = closestUp
+				}					
+				DirectionChan <- nextDirection
+				ExecuteListChan <- internal[0:]				
 			}
-			*/
-			Println(MyStruct)
-			Println(floor)
-			Println(dir)
-			Println(ExecuteList)
 		}
-	}	
 
+				/*
+				for j := 0; j < len(internal); j++{
+					if len(UnsortedExecuteList) > 0{
+						if internal[j] == 1 && contains(UnsortedExecuteList,j) == false{
+							UnsortedExecuteList = append(UnsortedExecuteList[0:],j)
+						}
+						if internal[j] == 0 && contains(UnsortedExecuteList,j) == true{
+							position := containsPosition(UnsortedExecuteList,j)
 
-		Println(externalOrders)
-		time.Sleep(10*time.Millisecond)
+							UnsortedExecuteList = append(UnsortedExecuteList[:position], UnsortedExecuteList[position+1:]...)
+						}
+					}else{
+						if internal[j] == 1 && contains(UnsortedExecuteList,j) == false{
+							UnsortedExecuteList = append(UnsortedExecuteList[0:],j)
+						}
+					}
+				}
+
+				/*
+				closestUp := 100
+				closestDown := 100
+				closest := 100
+				if nextDirection == 0{
+					for j := 0; j < len(UnsortedExecuteList); j++{
+						if UnsortedExecuteList[j] > floor{
+							if (UnsortedExecuteList[j] - floor) < closestUp{
+								closestUp = UnsortedExecuteList[j]
+								closest = closestUp
+								Println(closest)
+							} 
+						}
+						if UnsortedExecuteList[j] < floor{
+							if (floor - UnsortedExecuteList[j]) < closestDown{
+								closestDown = UnsortedExecuteList[j]
+								closest = closestDown
+							}
+						}
+						if closestDown == closestUp{
+							closest = closestUp
+						}
+					}
+				}
+				for j := 0; j < len(UnsortedExecuteList); j++{
+					if closest < 4 && closest > -1{
+						UnsortedExecuteList[0] = closest
+					}
+
+				}
+
+				if closest < 4 && closest > -1{
+					array := [1]int{closest}
+					ExecuteListChan <- array[0:]
+				}
+				Println("closest")	
+				Println(closest)
+				Println(UnsortedExecuteList)
+				Println(floor)
+				Println("Next Direction")
+				Println(nextDirection)
+				*/
+		
 	}
 }
-
 func contains(s []int, e int) bool {
     for _, a := range s { if a == e { return true } }
     return false
@@ -193,8 +264,8 @@ func containsPosition(s []int, e int) int {
 
 //arr = append(arr[1:], newElement)
 
-func DistributeOrders(ReceiveStruct chan NetworkInterface, IPchan chan string, ExecuteListChan chan []int, IPlistChan chan [N_ELEVATORS]string, MyIP string){
+func DistributeOrders(ReceiveStruct chan NetworkInterface, IPchan chan string, ExecuteListChan chan []int, IPlistChan chan [N_ELEVATORS]string, MyIP string,DirectionChan chan int){
 	//go MakeIPList(IPchan, IPlistChan)
 	go MakeLists(IPchan, IPlistChan, ReceiveStruct,StructListChan)
-	go CostFunction(ReceiveStruct,IPlistChan,StructListChan,MyIP,ExecuteListChan)
+	go CostFunction(IPlistChan,StructListChan,MyIP,ExecuteListChan,DirectionChan)
 }

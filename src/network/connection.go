@@ -47,59 +47,6 @@ func ConnSend(BroadcastPort string, BroadcastIP string,NetworkChannel chan Netwo
 	}
 }
 
-/*
-func ImAlive(client string,MasterAliveMessage chan string,MyIP string){
-	for{
-		if client == "master"{
-			message := "Welcome to the elevator system."
-			AliveMessage <- message
-		}
-		if client == "slave"{
-			message := "IP"+MyIP
-			AliveMessage <- message
-		}	
-		time.Sleep(100*time.Millisecond)
-	}	
-}
-
-func MasterAlive(MasterIsAlive chan string){
-	for{
-		alive := <- MasterIsAlive
-		if alive == "I am dead."{
-			Println("I am dead")	
-		}	
-	}
-}
-*/
-/*
-func MakeIPList(IPlistchan chan []string, IPchan chan string,MyIP string){
-	var IPlist [1]string
-	IPlist[0] = MyIP
-
-	for {
-		var temp [len(IPlist)+1]string
-		allreadyadded := 0
-		IP := <- IPchan
-		for i := 0; i < len(IPlist); i++ {
-			if IPlist[i] == IP{
-				allreadyadded = 1
-			}
-		}
-		if allreadyadded == 0{	
-			
-			temp[len(IPlist)] = IP
-			for i:=0;i<len(IPlist); i++{
-				temp[i] = IPlist[i]
-			}	
-			
-		}
-		IPlist := temp
-		IPlistChan <- IPlist[0:]
-		time.Sleep(100*time.Millisecond)	
-	}
-}
-*/
-
 
 
 func test3(ExecuteListChan chan []int){
@@ -116,9 +63,8 @@ func test3(ExecuteListChan chan []int){
 
 func Network(){
 	BroadcastIP, BroadcastPort,MyIP := Init()
-	//go test3(ExecuteListChan)
 
-	go CreateStruct(InternalOrdersToNetwork,ExternalOrdersToNetwork,MyIP,StructChannel/*,Direction*/,FloorChan)			
+	go CreateStruct(InternalOrdersToNetwork,ExternalOrdersToNetwork,MyIP,StructChannel,FloorChan,LastStopChannel)			
 	go ConnReceive(BroadcastPort,ReceiveStruct)
 	go ConnSend(BroadcastPort,BroadcastIP,StructChannel)
 	go DistributeOrders(ReceiveStruct, IPchan, ExecuteListChan, IPlistChan,MyIP,DirectionChan)

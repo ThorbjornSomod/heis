@@ -7,6 +7,7 @@ import(
 
 const N_ELEVATORS int = 3
 
+
 func MakeLists( IPchan chan string,IPlistChan chan [N_ELEVATORS]string, ReceiveStruct chan NetworkInterface,StructListChan chan [N_ELEVATORS]NetworkInterface){
 	var IPlist [N_ELEVATORS]string
 	var StructList [N_ELEVATORS]NetworkInterface
@@ -24,8 +25,9 @@ func MakeLists( IPchan chan string,IPlistChan chan [N_ELEVATORS]string, ReceiveS
 
 		Struct := <- ReceiveStruct
 		IP := <- IPchan
+		Println(IP)
 		
-		for i := 0; i < len(IPlist); i++{ //Increase timer every time elevator sends a struct
+		for i := 0; i < len(IPlist); i++{ // Increase timer every time elevator sends a struct.
 			if IPlist[i] == IP{
 				allreadyadded = true
 				StructList[i] = Struct
@@ -34,7 +36,7 @@ func MakeLists( IPchan chan string,IPlistChan chan [N_ELEVATORS]string, ReceiveS
 		}
 
 		
-		for i := 0; i < len(IPtimer); i++{ //Removes IP from list if connection is lost
+		for i := 0; i < len(IPtimer); i++{ // Removes IP from list if connection is lost.
 			if IPlist[i] != "nil"{
 				IPtimerCheck[i] = time.Now().UnixNano()/int64(time.Millisecond)
 				if IPtimer[i] < IPtimerCheck[i] && IPlist[i] != "nil"{
@@ -55,7 +57,7 @@ func MakeLists( IPchan chan string,IPlistChan chan [N_ELEVATORS]string, ReceiveS
 		}
 		StructListChan <- StructList
 		IPlistChan <- IPlist
-	
+		Println(IPlist)
 	}
 }
 
@@ -67,7 +69,7 @@ func CostFunction(IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_EL
 		Structlist :=<- StructListChan
 		IPlist :=<- IPlistChan
 
-		for i := 0; i < len(IPlist); i++{ //Make a list of all internal and external orders in the system
+		for i := 0; i < len(IPlist); i++{ // Make a list of all internal and external orders in the system.
 			if IPlist[i] != "nil"{
 				for j := 0; j < 4; j++{
 				internalOrders[i][j] = Structlist[i].NewInternalOrders[j]
@@ -78,8 +80,12 @@ func CostFunction(IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_EL
 
 			}
 		}
+
+// What every elevator should do.
+//---------------------------------------------------------------------------------------------------		
+
 		for i:= 0; i<len(IPlist);i++{
-			if IPlist[i] == MyIP{ //for loop only active for me
+			if IPlist[i] == MyIP{ // For loop only active for me.
 
 				MyStruct := Structlist[i]
 				floor := MyStruct.Floor
@@ -89,23 +95,29 @@ func CostFunction(IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_EL
 				closestDown := 100
 				closest := 100
 
+// Managing cost of internal orders.
+//---------------------------------------------------------------------------------------------------
+
 				for j:= 0;j<len(internal); j++{
 					if internal[j] == 1{
 
 						if floor > j{
-							if (floor-j < closestDown){ //least cost down
+							if (floor-j < closestDown){ // Least cost down.
 								closestDown = j
 								closest = closestDown
 							}
 						}
 						if floor < j{
-							if (j-floor < closestUp){ //least cost up
+							if (j-floor < closestUp){ // Least cost up.
 								closestUp = j
 								closest = closestUp
 							}
 						}	
 					}
 				}
+
+// Managing cost of external orders.
+//---------------------------------------------------------------------------------------------------
 
 				for j:=0;j<4;j++{
 					if externalOrders[j][0] == 1{
@@ -122,7 +134,9 @@ func CostFunction(IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_EL
 					} 
 				}
 
-				if closestUp-floor == floor-closestDown{ //Prioritize the order in direction of travel
+//---------------------------------------------------------------------------------------------------
+
+				if closestUp-floor == floor-closestDown{ // Prioritize the order in direction of travel.
 					if lastStop < floor{
 						closest = closestUp
 					}else if lastStop > floor{
@@ -140,9 +154,9 @@ func CostFunction(IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_EL
 					closest = closestDown
 				}
 
-				if closestUp > 4{ // if no order up
+				if closestUp > 4{ // If no order up.
 					closest = closestDown
-				}else if closestDown > 4{ // if no order down
+				}else if closestDown > 4{ // If no order down.
 					closest = closestUp
 				}	
 				
@@ -159,11 +173,12 @@ func CostFunction(IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_EL
 				}
 				DirectionChan <- nextDirection
 				ExecuteListChan <- internal[0:]
-				Println("s")								
+				Println("")								
 			}
 		}
 	}
 }
+
 func contains(s []int, e int) bool {
     for _, a := range s { if a == e { return true } }
     return false

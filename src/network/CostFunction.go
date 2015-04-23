@@ -224,10 +224,10 @@ func CostFunction(IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_EL
 				//Println(closestDown)
 				//Println(closestUp)
 				if closest < 4 && closest >= 0{
-					if closest < lastStop{
+					if closest < lastStop || floor == 3{
 						nextDirection = -1
 					}
-					if closest > lastStop{
+					if closest > lastStop || floor == 0{
 						nextDirection = 1
 					}
 				}else{

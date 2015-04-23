@@ -251,24 +251,33 @@ func stopAtFloor(order []int,lastFloor int)bool{
 
 func ExecuteOrders(ExecuteListChan chan []int, DirectionChan chan int,LastStopChannel chan int){
 	go States(FloorChan)
-	lastFloor := elev_get_floor_sensor_signal()
+	floor := elev_get_floor_sensor_signal()
 	for{
 		direction :=<- DirectionChan
 		order :=<- ExecuteListChan				
 		switch{
 		case elev_get_floor_sensor_signal() != -1: //elevator is at a floor
-			lastFloor = elev_get_floor_sensor_signal()
-			if stopAtFloor(order,lastFloor) == true{
+			floor = elev_get_floor_sensor_signal()
+			if stopAtFloor(order,floor) == true{
 				elev_set_motor_direction(DIRN_STOP)
 				DeleteOrderChan <- true
 				
 				//set door open
-				for i:= 0;i<200;i++{ 
+				doorTimer:=time.Now().Add(time.Second*2).UnixNano()/int64(time.Millisecond)
+				for{ 
+					Println("set door open")
 					<- DirectionChan
 					<- ExecuteListChan
-					time.Sleep(10*time.Millisecond)
+					if time.Now().UnixNano()/int64(time.Millisecond) > doorTimer{
+						break
+					}
 				}
 				//clear doo open*/
+			if floor == 0{
+				direction = 1
+			}else if floor == 3{
+				direction = -1
+			}
 			}
 			if direction > 0{
 				elev_set_motor_direction(DIRN_UP)
@@ -289,20 +298,21 @@ func ExecuteOrders(ExecuteListChan chan []int, DirectionChan chan int,LastStopCh
 }
 
 
-func lightsAndOrders(internalOrders [N_FLOORS]int, externalOrders [N_FLOORS][2]int, DirnChan chan int){	
+func lightsAndOrders(internalOrders [N_FLOORS]int, externalOrders [N_FLOORS][2]int, AllexternalOrders [N_FLOORS][2]int,DirnChan chan int,ExternalLightsChan chan [4][2]int){	
 	for{
 		select{
 		case delete :=<-DeleteOrderChan:
 			internalOrders = clearInternalOrders(delete,elev_get_floor_sensor_signal(),internalOrders)
 			externalOrders = clearExternalOrders(delete,elev_get_floor_sensor_signal(),externalOrders)
-			default:
+		case clearLights :=<- ExternalLightsChan:
+			AllexternalOrders = clearLights
+		default:
 			internalOrders = newInternalOrders(internalOrders)
 			externalOrders = newExternalOrders(externalOrders)
-			setInternalLights(internalOrders)
-			setExternalLights(externalOrders)
+			setInternalLights(internalOrders)	
 			elev_set_floor_indicator(elev_get_floor_sensor_signal())
 			InformationToNetworkUnit(internalOrders,externalOrders,ExternalOrdersToNetwork,InternalOrdersToNetwork)			
-	
+			setExternalLights(AllexternalOrders)
 		}
 	}
 	
@@ -318,10 +328,10 @@ func runElevator(){
 func Elevator(){
 	internalOrders := [N_FLOORS]int{0,0,0,0}
 	externalOrders := [N_FLOORS][2]int{{0,0},{0,0},{0,0},{0,0}} //{Up,Down}
-	
+	AllexternalOrders := [N_FLOORS][2]int{{0,0},{0,0},{0,0},{0,0}} 
 	
 	go runElevator()
-	go lightsAndOrders(internalOrders,externalOrders,DirnChan)
+	go lightsAndOrders(internalOrders,externalOrders, AllexternalOrders, DirnChan,ExternalLightsChan)
 	
 
 	Println("Elevator")

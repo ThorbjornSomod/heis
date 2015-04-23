@@ -60,7 +60,7 @@ func Network(){
 	go CreateStruct(InternalOrdersToNetwork,ExternalOrdersToNetwork,MyIP,StructChannel,FloorChan,LastStopChannel)			
 	go ConnReceive(BroadcastPort,ReceiveStruct)
 	go ConnSend(BroadcastPort,BroadcastIP,StructChannel)
-	go DistributeOrders(ReceiveStruct, IPchan, ExecuteListChan, IPlistChan,MyIP,DirectionChan)
+	go DistributeOrders(ReceiveStruct, IPchan, ExecuteListChan, IPlistChan,MyIP,DirectionChan,ExternalLightsChan)
 
 
 	channela := make(chan string)		

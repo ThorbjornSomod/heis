@@ -25,7 +25,6 @@ func MakeLists( IPchan chan string,IPlistChan chan [N_ELEVATORS]string, ReceiveS
 
 		Struct := <- ReceiveStruct
 		IP := <- IPchan
-		Println(IP)
 		
 		for i := 0; i < len(IPlist); i++{ // Increase timer every time elevator sends a struct.
 			if IPlist[i] == IP{
@@ -57,11 +56,10 @@ func MakeLists( IPchan chan string,IPlistChan chan [N_ELEVATORS]string, ReceiveS
 		}
 		StructListChan <- StructList
 		IPlistChan <- IPlist
-		Println(IPlist)
 	}
 }
 
-func CostFunction(IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_ELEVATORS]NetworkInterface, MyIP string,ExecuteListChan chan []int,DirectionChan chan int){
+func CostFunction(IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_ELEVATORS]NetworkInterface, MyIP string,ExecuteListChan chan []int,DirectionChan chan int,ExternalLightsChan chan [4][2]int){
 	var internalOrders [N_ELEVATORS][4]int
 	var externalOrders [4][2]int
 	nextDirection := 0
@@ -94,6 +92,10 @@ func CostFunction(IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_EL
 				closestUp := 100
 				closestDown := 100
 				closest := 100
+				internalUp := false
+				internalDown := false
+				better := false
+
 
 // Managing cost of internal orders.
 //---------------------------------------------------------------------------------------------------
@@ -116,66 +118,129 @@ func CostFunction(IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_EL
 					}
 				}
 
+				if floor > lastStop{
+					closest = closestUp
+					if closestUp == 100{
+						closest = closestDown
+					}
+				}else if floor < lastStop{
+					closest = closestDown
+					if closestDown == 100{
+						closest = closestUp
+					}
+				}else if floor == lastStop{
+					if closestUp == 100{
+						closest = closestDown
+					}else if closestDown == 100{
+						closest = closestUp
+					}
+				}
+				if floor == 0{
+					closest = closestUp
+				}else if floor == 3{
+					closest = closestDown
+				}
+
+
+				if closestUp == closest && closest != 100{
+					internalUp = true
+				}else if closestDown == closest && closest != 100{
+					internalDown = true
+				}
+
 // Managing cost of external orders.
 //---------------------------------------------------------------------------------------------------
 
 				for j:=0;j<4;j++{
-					if externalOrders[j][0] == 1{
-						if (floor-externalOrders[j][0]) < closestUp{
-							closestUp = j
-							internal[j] = 1
+					if externalOrders[j][0] == 1 && internalDown == false{ //Up
+						for elevators := 0; elevators < len(IPlist); elevators++ {
+							if IPlist[elevators] != "nil" && IPlist[elevators] != MyIP{
+								Println(IPlist[elevators])
+								YourStruct := Structlist[elevators]
+								YourFloor := YourStruct.Floor
+								//YourInternal := YourStruct.NewInternalOrders
+								//YourLastStop := YourStruct.LastStop
+								if YourFloor == j{
+									better = true
+									break
+								}
+								if (YourFloor-j) < closestUp{
+									better = true
+									break
+								}
+							}
 						}
+
+						if (j-floor) < closestUp-floor && better == false{
+							
+							closestUp = j
+							internal[j] = 1		
+						}				
 					}
-					if externalOrders[j][1] == 1{
-						if (externalOrders[j][1])-floor < closestDown{
+					
+					if externalOrders[j][1] == 1 && internalUp == false{ //Down
+						if closestDown != 100{
+							if floor-j < floor-closestDown{
+								closestDown = j
+								internal[j] = 1
+							}
+						}else{
 							closestDown = j
 							internal[j] = 1
+							
 						}	
 					} 
 				}
+				
 
-//---------------------------------------------------------------------------------------------------
+// Managing other elevators				
+//---------------------------------------------------------------------------------------------------	
 
-				if closestUp-floor == floor-closestDown{ // Prioritize the order in direction of travel.
-					if lastStop < floor{
-						closest = closestUp
-					}else if lastStop > floor{
-						closest = closestDown
-					}
-				}else if closestUp-floor < floor-closestDown{
+
+
+
+// Choose direction
+//---------------------------------------------------------------------------------------------------	
+				if internalUp == internalDown && floor < lastStop{	
+					closest = closestDown
+				}else if internalUp == internalDown && floor > lastStop{
 					closest = closestUp
-				}else if closestUp-floor > floor-closestDown{
-					closest = closestDown 
 				}
-
-				if lastStop < floor{
+				if closestUp == closestDown{
+					closest = closestDown
+				}else if (closestUp - floor < floor - closestDown) && closestUp != 100 && closestDown != 100{
 					closest = closestUp
-				}else if lastStop > floor{
+				}else{
 					closest = closestDown
 				}
+
+
 
 				if closestUp > 4{ // If no order up.
 					closest = closestDown
 				}else if closestDown > 4{ // If no order down.
 					closest = closestUp
 				}	
-				
-				if closest < 4 && closest > -1{
-					if closest < floor{
-
+				//Println(closestDown)
+				//Println(closestUp)
+				if closest < 4 && closest >= 0{
+					if closest < lastStop{
 						nextDirection = -1
 					}
-					if closest > floor{
+					if closest > lastStop{
 						nextDirection = 1
 					}
 				}else{
 					nextDirection = 0
 				}
+				Println("closest")
+				Println(closest)
+				Println(nextDirection)
 				DirectionChan <- nextDirection
 				ExecuteListChan <- internal[0:]
-				Println("")								
+				ExternalLightsChan <- externalOrders							
 			}
-		}
+		} 
 	}
 }
 
@@ -193,7 +258,7 @@ func containsPosition(s []int, e int) int {
     return -1
 }
 
-func DistributeOrders(ReceiveStruct chan NetworkInterface, IPchan chan string, ExecuteListChan chan []int, IPlistChan chan [N_ELEVATORS]string, MyIP string,DirectionChan chan int){
+func DistributeOrders(ReceiveStruct chan NetworkInterface, IPchan chan string, ExecuteListChan chan []int, IPlistChan chan [N_ELEVATORS]string, MyIP string,DirectionChan chan int,ExternalLightsChan chan [4][2]int){
 	go MakeLists(IPchan, IPlistChan, ReceiveStruct,StructListChan)
-	go CostFunction(IPlistChan,StructListChan,MyIP,ExecuteListChan,DirectionChan)
+	go CostFunction(IPlistChan,StructListChan,MyIP,ExecuteListChan,DirectionChan,ExternalLightsChan)
 }

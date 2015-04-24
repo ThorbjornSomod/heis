@@ -57,10 +57,10 @@ func test3(ExecuteListChan chan []int){
 func Network(){
 	BroadcastIP, BroadcastPort,MyIP := Init()
 
-	go CreateStruct(InternalOrdersToNetwork,ExternalOrdersToNetwork,MyIP,StructChannel,FloorChan,LastStopChannel)			
+	go CreateStruct(InternalOrdersToNetwork,ExternalOrdersToNetwork,MyIP,StructChannel,FloorChan,LastStopChannel,UpdatedGlobalExternalOrdersChannel)			
 	go ConnReceive(BroadcastPort,ReceiveStruct)
 	go ConnSend(BroadcastPort,BroadcastIP,StructChannel)
-	go DistributeOrders(ReceiveStruct, IPchan, ExecuteListChan, IPlistChan,MyIP,DirectionChan,ExternalLightsChan)
+	go DistributeOrders(ReceiveStruct, IPchan, ExecuteListChan, IPlistChan,MyIP,DirectionChan,GlobalExternalOrdersChannel)
 
 
 	channela := make(chan string)		

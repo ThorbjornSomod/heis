@@ -2,7 +2,7 @@ package network
 
 import (
 	//."fmt"
-	//"time"
+	"time"
 )
 
 
@@ -14,13 +14,14 @@ type NetworkInterface struct {
 	NewInternalOrders [4]int
 	LastStop int
 	NextDirection int
-	Floor int		
+	Floor int
+	UpdatedGlobalExternalOrders [4][2]int		
 }
 
 var StructChannel = make(chan NetworkInterface)
 var StructListChan = make(chan [N_ELEVATORS]NetworkInterface)
 
-func CreateStruct(InternalOrdersToNetwork chan [4]int,ExternalOrdersToNetwork chan[4][2]int, MyIP string,StructChannel chan NetworkInterface, FloorChan chan int, LastStopChannel chan int) {
+func CreateStruct(InternalOrdersToNetwork chan [4]int,ExternalOrdersToNetwork chan[4][2]int, MyIP string,StructChannel chan NetworkInterface, FloorChan chan int, LastStopChannel chan int,UpdatedGlobalExternalOrdersChannel chan [4][2]int) {
 	lastStop := 0
 	for{
 		select{
@@ -29,10 +30,11 @@ func CreateStruct(InternalOrdersToNetwork chan [4]int,ExternalOrdersToNetwork ch
 			default:
 				Internal :=<- InternalOrdersToNetwork
 				External :=<- ExternalOrdersToNetwork
+				updatedGlobalExternalOrders :=<- UpdatedGlobalExternalOrdersChannel
 				floor :=<- FloorChan
-				Struct := NetworkInterface{IP:MyIP, NewExternalOrders:External, NewInternalOrders:Internal, Floor:floor, LastStop:lastStop} 
+				Struct := NetworkInterface{IP:MyIP, NewExternalOrders:External, NewInternalOrders:Internal, Floor:floor, LastStop:lastStop, UpdatedGlobalExternalOrders:updatedGlobalExternalOrders} 
 				StructChannel <- Struct
 		}
-		//time.Sleep(25*time.Millisecond) 
+		time.Sleep(25*time.Millisecond) 
 	}	
 }

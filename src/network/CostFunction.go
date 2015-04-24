@@ -3,6 +3,7 @@ package network
 import(
 		."fmt"
 		"time"
+		//.".././channels"
 )
 
 const N_ELEVATORS int = 3
@@ -54,31 +55,45 @@ func MakeLists( IPchan chan string,IPlistChan chan [N_ELEVATORS]string, ReceiveS
 				}
 			}
 		}
+
 		StructListChan <- StructList
 		IPlistChan <- IPlist
+		
 	}
+
 }
 
-func CostFunction(IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_ELEVATORS]NetworkInterface, MyIP string,ExecuteListChan chan []int,DirectionChan chan int,ExternalLightsChan chan [4][2]int){
-	var internalOrders [N_ELEVATORS][4]int
-	var externalOrders [4][2]int
+func CostFunction(IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_ELEVATORS]NetworkInterface, MyIP string,ExecuteListChan chan []int,DirectionChan chan int,GlobalExternalOrdersChannel chan [4][2]int){
+	var GlobalExternalOrders [4][2]int
 	nextDirection := 0
 	for{
+
 		Structlist :=<- StructListChan
 		IPlist :=<- IPlistChan
 
 		for i := 0; i < len(IPlist); i++{ // Make a list of all internal and external orders in the system.
 			if IPlist[i] != "nil"{
 				for j := 0; j < 4; j++{
-				internalOrders[i][j] = Structlist[i].NewInternalOrders[j]
 					for k := 0; k < 2; k++{
-						externalOrders[j][k] = Structlist[i].NewExternalOrders[j][k]
+						if Structlist[i].UpdatedGlobalExternalOrders[j][k] == 0{
+							GlobalExternalOrders[j][k] = 0
+
+						}					
+						if Structlist[i].NewExternalOrders[j][k] == 1{
+							GlobalExternalOrders[j][k] = 1
+
+						}
+ 
+ 							
 					}
 				}
 
 			}
 		}
 
+
+
+		
 // What every elevator should do.
 //---------------------------------------------------------------------------------------------------		
 
@@ -152,10 +167,10 @@ func CostFunction(IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_EL
 //---------------------------------------------------------------------------------------------------
 
 				for j:=0;j<4;j++{
-					if externalOrders[j][0] == 1 && internalDown == false{ //Up
+					if GlobalExternalOrders[j][0] == 1 && internalDown == false{ //Up
 						for elevators := 0; elevators < len(IPlist); elevators++ {
 							if IPlist[elevators] != "nil" && IPlist[elevators] != MyIP{
-								Println(IPlist[elevators])
+								//Println(IPlist[elevators])
 								YourStruct := Structlist[elevators]
 								YourFloor := YourStruct.Floor
 								//YourInternal := YourStruct.NewInternalOrders
@@ -178,7 +193,7 @@ func CostFunction(IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_EL
 						}				
 					}
 					
-					if externalOrders[j][1] == 1 && internalUp == false{ //Down
+					if GlobalExternalOrders[j][1] == 1 && internalUp == false{ //Down
 						if closestDown != 100{
 							if floor-j < floor-closestDown{
 								closestDown = j
@@ -221,8 +236,7 @@ func CostFunction(IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_EL
 				}else if closestDown > 4{ // If no order down.
 					closest = closestUp
 				}	
-				//Println(closestDown)
-				//Println(closestUp)
+
 				if closest < 4 && closest >= 0{
 					if closest < lastStop || floor == 3{
 						nextDirection = -1
@@ -236,11 +250,14 @@ func CostFunction(IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_EL
 				Println("closest")
 				Println(closest)
 				Println(nextDirection)
+				GlobalExternalOrdersChannel <- GlobalExternalOrders	
 				DirectionChan <- nextDirection
 				ExecuteListChan <- internal[0:]
-				ExternalLightsChan <- externalOrders							
+									
 			}
-		} 
+		}
+		time.Sleep(10*time.Millisecond) 
+
 	}
 }
 
@@ -258,7 +275,9 @@ func containsPosition(s []int, e int) int {
     return -1
 }
 
-func DistributeOrders(ReceiveStruct chan NetworkInterface, IPchan chan string, ExecuteListChan chan []int, IPlistChan chan [N_ELEVATORS]string, MyIP string,DirectionChan chan int,ExternalLightsChan chan [4][2]int){
+
+func DistributeOrders(ReceiveStruct chan NetworkInterface, IPchan chan string, ExecuteListChan chan []int, IPlistChan chan [N_ELEVATORS]string, MyIP string,DirectionChan chan int,GlobalExternalOrdersChannel chan [4][2]int){
 	go MakeLists(IPchan, IPlistChan, ReceiveStruct,StructListChan)
-	go CostFunction(IPlistChan,StructListChan,MyIP,ExecuteListChan,DirectionChan,ExternalLightsChan)
+	go CostFunction(IPlistChan,StructListChan,MyIP,ExecuteListChan,DirectionChan,GlobalExternalOrdersChannel)
+
 }

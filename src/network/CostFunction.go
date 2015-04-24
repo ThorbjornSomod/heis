@@ -58,7 +58,7 @@ func MakeLists( IPchan chan string,IPlistChan chan [N_ELEVATORS]string, ReceiveS
 
 		StructListChan <- StructList
 		IPlistChan <- IPlist
-		
+		Println(IPlist)
 	}
 
 }
@@ -93,9 +93,9 @@ func CostFunction(IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_EL
 		}
 		Println("hei")
 		Println(MyIP)
-		Println(Structlist[0].NewExternalOrders)
-		Println(Structlist[0].Executed)
-		Println(Structlist[0].Floor)
+		//Println(Structlist[0].NewExternalOrders)
+		//Println(Structlist[0].Executed)
+		//Println(Structlist[0].Floor)
 		
 // What every elevator should do.
 //---------------------------------------------------------------------------------------------------		

@@ -377,18 +377,16 @@ func lightsAndOrders(internalOrders [N_FLOORS]int,DirnChan chan int,GlobalExtern
 			ExecutedChannel <- delete
 			externalOrders = clearExternalOrders(delete,floor,externalOrders)
 
-		default:
+		case GlobalExternalOrders :=<- GlobalExternalOrdersChannel:
 
-			GlobalExternalOrders :=<- GlobalExternalOrdersChannel
 			externalOrders = newExternalOrders(externalOrders) 
 			InformationToNetworkUnit(internalOrders,externalOrders,ExternalOrdersToNetwork,InternalOrdersToNetwork)
-			setExternalLights(GlobalExternalOrders)
 			internalOrders = newInternalOrders(internalOrders)
 			setInternalLights(internalOrders)	
 			elev_set_floor_indicator(elev_get_floor_sensor_signal())
 			setExternalLights(GlobalExternalOrders)	
-			externalOrders = [N_FLOORS][2]int{{0,0},{0,0},{0,0},{0,0}}	
-			Println(GlobalExternalOrders)
+			externalOrders = [N_FLOORS][2]int{{0,0},{0,0},{0,0},{0,0}}
+			Println(GlobalExternalOrders)	
 		
 		}
 	}

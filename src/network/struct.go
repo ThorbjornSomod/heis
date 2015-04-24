@@ -15,25 +15,35 @@ type NetworkInterface struct {
 	LastStop int
 	NextDirection int
 	Floor int
-	UpdatedGlobalExternalOrders [4][2]int		
+	Executed bool		
 }
 
 var StructChannel = make(chan NetworkInterface)
 var StructListChan = make(chan [N_ELEVATORS]NetworkInterface)
 
-func CreateStruct(InternalOrdersToNetwork chan [4]int,ExternalOrdersToNetwork chan[4][2]int, MyIP string,StructChannel chan NetworkInterface, FloorChan chan int, LastStopChannel chan int,UpdatedGlobalExternalOrdersChannel chan [4][2]int) {
+func CreateStruct(InternalOrdersToNetwork chan [4]int,ExternalOrdersToNetwork chan[4][2]int, MyIP string,StructChannel chan NetworkInterface, FloorChan chan int, LastStopChannel chan int,ExecutedChannel chan bool) {
 	lastStop := 0
+	executed := false
+	tempFloor := 0
 	for{
 		select{
 			case ReceiveLastStop :=<- LastStopChannel:
 				lastStop = ReceiveLastStop
+			case temp :=<- ExecutedChannel:
+				executed = temp
 			default:
+
 				Internal :=<- InternalOrdersToNetwork
 				External :=<- ExternalOrdersToNetwork
-				updatedGlobalExternalOrders :=<- UpdatedGlobalExternalOrdersChannel
 				floor :=<- FloorChan
-				Struct := NetworkInterface{IP:MyIP, NewExternalOrders:External, NewInternalOrders:Internal, Floor:floor, LastStop:lastStop, UpdatedGlobalExternalOrders:updatedGlobalExternalOrders} 
+				if floor != tempFloor{
+					executed = false
+				}
+
+				Struct := NetworkInterface{IP:MyIP, NewExternalOrders:External, NewInternalOrders:Internal, Floor:floor, LastStop:lastStop, Executed:executed} 
 				StructChannel <- Struct
+				tempFloor = floor
+
 		}
 		time.Sleep(25*time.Millisecond) 
 	}	

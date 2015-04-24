@@ -1,41 +1,37 @@
 package main
 
 import (
-    "bufio"
-    "io"
+    "io/ioutil"
+    "encoding/json"
     "os"
+    //."fmt"
 )
 
-func write(filename string){
-
-// open output file
-    fo, err := os.Create(filename)
-    if err != nil {
-        panic(err)
+func check(e error) {
+    if e != nil {
+        panic(e)
     }
-    // close fo on exit and check for its returned error
-    defer func() {
-        if err := fo.Close(); err != nil {
-            panic(err)
-        }
-    }()
+}
 
-    // make a write buffer
-    w := bufio.NewWriter(fo)
+func write(filename string, internalOrders []int, externalOrders []int) {
 
-    for{
-    	// write a chunk
-        if _, err := w.Write(buf[:n]); err != nil {
-            panic(err)
-        }
+    if _, err := os.Stat(filename); os.IsNotExist(err) {
+        os.Create(filename)
     }
 
-    if err = w.Flush(); err != nil {
-        panic(err)
-    }
+    var orders [2][]int
 
+    orders[0] = internalOrders
+    orders[1] = externalOrders
+
+    b,_ := json.Marshal(orders)
+
+    err := ioutil.WriteFile(filename, b, 0644)
+    check(err)
 }
 
 func main(){
-	write("output.txt")
+    internalOrders := []int{1,2,3,4,7,10}
+    externalOrders := []int{3,2,1,9,7,11}
+	write("input.txt",internalOrders, externalOrders)
 }

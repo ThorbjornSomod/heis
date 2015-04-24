@@ -1,43 +1,37 @@
 package main
 
 import (
-    "bufio"
-    "io"
-    "os"
+    "io/ioutil"
     ."fmt"
+    "encoding/json"
+    "os"
 )
 
-func read(filename string) {
-    // open input file
-    fi, err := os.Open(filename)
-    if err != nil {
-        panic(err)
+func check(e error) {
+    if e != nil {
+        panic(e)
     }
-    // close fi on exit and check for its returned error
-    defer func() {
-        if err := fi.Close(); err != nil {
-            panic(err)
-        }
-    }()
-    // make a read buffer
-    r := bufio.NewReader(fi)
+}
 
-    // make a buffer to keep chunks that are read
-    buf := make([]byte, 1024)
-    for {
-        // read a chunk
-        n, err := r.Read(buf)
-        if err != nil && err != io.EOF {
-            panic(err)
-        }
-        
-        if n == 0 {
-            break
-        }   
+func read(filename string) ([]int, []int) {
+
+    if _, err := os.Stat(filename); os.IsNotExist(err) {
+        Println("File does not exist at location. Making new queue file.")
+        os.Create(filename)
     }
-    Println(string(buf[10]))
+
+    dat, err := ioutil.ReadFile(filename)
+    check(err)
+
+    var b [2][]int
+    json.Unmarshal(dat, &b)
+
+    internalOrders := b[0]
+    externalOrders := b[1]
+
+    return internalOrders, externalOrders
 }
 
 func main(){
-    read("input.txt")
+    Println(read("input.txt"))
 }

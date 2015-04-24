@@ -29,7 +29,8 @@ func ConnReceive(BroadcastPort string,RecevieStruct chan NetworkInterface){//Rec
 			var m NetworkInterface
 			json.Unmarshal(b,&m)
 			ReceiveStruct <- m
-			IPchan <- m.IP	 
+			IPchan <- m.IP
+			Println(m.NewExternalOrders)	 
 		}else{
 			Println("Something is wrong")
 		}		
@@ -57,7 +58,7 @@ func test3(ExecuteListChan chan []int){
 func Network(){
 	BroadcastIP, BroadcastPort,MyIP := Init()
 
-	go CreateStruct(InternalOrdersToNetwork,ExternalOrdersToNetwork,MyIP,StructChannel,FloorChan,LastStopChannel,ExecutedChannel)			
+	go CreateStruct(InternalOrdersToNetwork,ExternalOrdersToNetwork,MyIP,StructChannel,FloorChan,LastStopChannel,UpdatedGlobalExternalOrdersChannel)			
 	go ConnReceive(BroadcastPort,ReceiveStruct)
 	go ConnSend(BroadcastPort,BroadcastIP,StructChannel)
 	go DistributeOrders(ReceiveStruct, IPchan, ExecuteListChan, IPlistChan,MyIP,DirectionChan,GlobalExternalOrdersChannel)

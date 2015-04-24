@@ -1,7 +1,7 @@
 package network
 
 import(
-		."fmt"
+		//."fmt"
 		"time"
 		//.".././channels"
 )
@@ -75,9 +75,8 @@ func CostFunction(IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_EL
 			if IPlist[i] != "nil"{
 				for j := 0; j < 4; j++{
 					for k := 0; k < 2; k++{
-						if Structlist[i].Executed == true {
-							GlobalExternalOrders[Structlist[i].Floor][0] = 0
-							GlobalExternalOrders[Structlist[i].Floor][1] = 0
+						if Structlist[i].UpdatedGlobalExternalOrders[j][k] == 0{
+							GlobalExternalOrders[j][k] = 0
 
 						}					
 						if Structlist[i].NewExternalOrders[j][k] == 1{
@@ -91,11 +90,9 @@ func CostFunction(IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_EL
 
 			}
 		}
-		Println("hei")
-		Println(MyIP)
-		Println(Structlist[0].NewExternalOrders)
-		Println(Structlist[0].Executed)
-		Println(Structlist[0].Floor)
+
+
+
 		
 // What every elevator should do.
 //---------------------------------------------------------------------------------------------------		

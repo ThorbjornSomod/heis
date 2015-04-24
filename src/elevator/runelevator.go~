@@ -3,9 +3,7 @@ package elevator
 import(
 		."fmt"
 		"time"
-		"io/ioutil"
-    	"encoding/json"
-    	"os"
+		
 		//.".././network"
 		.".././channels"
 		)
@@ -224,9 +222,10 @@ func setExternalLights(externalOrders [N_FLOORS][2]int){
 	}
 }
 
-func InformationToNetworkUnit(internalOrders [N_FLOORS]int,externalOrders [N_FLOORS][2]int, ExternalOrdersToNetwork chan [N_FLOORS][2]int, InternalOrdersToNetwork chan [N_FLOORS]int){
+func InformationToNetworkUnit(internalOrders [N_FLOORS]int,externalOrders [N_FLOORS][2]int, ExternalOrdersToNetwork chan [N_FLOORS][2]int, InternalOrdersToNetwork chan [N_FLOORS]int,GlobalExternalOrders [N_FLOORS][2]int,UpdatedGlobalExternalOrdersChannel chan [4][2]int){
 	InternalOrdersToNetwork <- internalOrders
 	ExternalOrdersToNetwork <- externalOrders
+	UpdatedGlobalExternalOrdersChannel <- GlobalExternalOrders
 }
 func States(FloorChan chan int){
 	lastFloor := elev_get_floor_sensor_signal()
@@ -262,65 +261,6 @@ func doorTimer(DirectionChan chan int, ExecuteListChan chan []int){
 	}
 }
 
-func check(e error) {
-    if e != nil {
-        panic(e)
-    }
-}
-
-func read(filename string) ([4]int, [4][2]int) {
-
-    if _, err := os.Stat(filename); os.IsNotExist(err) {
-        Println("File does not exist at location. Making new queue file.")
-        os.Create(filename)
-    }
-
-    type order_struct struct{
-    	internal [4]int
-    	external [4][2]int
-    }
-
-    dat, err := ioutil.ReadFile(filename)
-    check(err)
-
-    Orders := new(order_struct)
-
-    json.Unmarshal(dat, &Orders)
-
-    var internalOrders [4]int
-    var externalOrders [4][2]int
-
-    internalOrders = Orders.internal
-    externalOrders = Orders.external
-
-    return internalOrders, externalOrders
-}
-
-func write(filename string, internalOrders [4]int, externalOrders [4][2]int) {
-
-    if _, err := os.Stat(filename); os.IsNotExist(err) {
-    	Println("File does not exist at location. Making new queue file.")
-        os.Create(filename)
-    }
-
-    //Println("Hei")
-
-    type order_struct struct{
-    	internal [4]int
-    	external [4][2]int
-    }
-    
-    Orders := order_struct{internal:internalOrders, external: externalOrders}
-
-    //Println(Orders)
-
-    b,_ := json.Marshal(Orders)
-
-    //Println(b)
-
-    err := ioutil.WriteFile(filename, b, 0644)
-    check(err)
-}
 
 func ExecuteOrders(ExecuteListChan chan []int, DirectionChan chan int,LastStopChannel chan int){
 	go States(FloorChan)
@@ -358,13 +298,13 @@ func ExecuteOrders(ExecuteListChan chan []int, DirectionChan chan int,LastStopCh
 }
 
 
-func lightsAndOrders(internalOrders [N_FLOORS]int,DirnChan chan int,GlobalExternalOrdersChannel chan [4][2]int,ExecutedChannel chan bool){	
+func lightsAndOrders(internalOrders [N_FLOORS]int, AllexternalOrders [N_FLOORS][2]int,DirnChan chan int,GlobalExternalOrdersChannel chan [4][2]int){	
 	GlobalExternalOrders := [N_FLOORS][2]int{{0,0},{0,0},{0,0},{0,0}}
 	//externalOrders := [N_FLOORS][2]int{{0,0},{0,0},{0,0},{0,0}}
 
 			externalOrders := [N_FLOORS][2]int{{0,0},{0,0},{0,0},{0,0}}
 			externalOrders = newExternalOrders(externalOrders) 
-			InformationToNetworkUnit(internalOrders,externalOrders,ExternalOrdersToNetwork,InternalOrdersToNetwork)
+			InformationToNetworkUnit(internalOrders,externalOrders,ExternalOrdersToNetwork,InternalOrdersToNetwork,GlobalExternalOrders,UpdatedGlobalExternalOrdersChannel)
 			setExternalLights(GlobalExternalOrders)
 			internalOrders = newInternalOrders(internalOrders)
 			setInternalLights(internalOrders)	
@@ -374,22 +314,27 @@ func lightsAndOrders(internalOrders [N_FLOORS]int,DirnChan chan int,GlobalExtern
 		case delete :=<-DeleteOrderChan:
 			floor := elev_get_floor_sensor_signal()
 			internalOrders = clearInternalOrders(delete,floor,internalOrders)
-			ExecutedChannel <- delete
+			GlobalExternalOrders = clearExternalOrders(delete,floor,GlobalExternalOrders)
 			externalOrders = clearExternalOrders(delete,floor,externalOrders)
-
-		default:
-
-			GlobalExternalOrders :=<- GlobalExternalOrdersChannel
+				Println("hello")
+		case a:=<-GlobalExternalOrdersChannel:
+			GlobalExternalOrders = a
+			//externalOrders := [N_FLOORS][2]int{{0,0},{0,0},{0,0},{0,0}}
 			externalOrders = newExternalOrders(externalOrders) 
-			InformationToNetworkUnit(internalOrders,externalOrders,ExternalOrdersToNetwork,InternalOrdersToNetwork)
-			setExternalLights(GlobalExternalOrders)
+			InformationToNetworkUnit(internalOrders,externalOrders,ExternalOrdersToNetwork,InternalOrdersToNetwork,GlobalExternalOrders,UpdatedGlobalExternalOrdersChannel)
+			//setExternalLights(GlobalExternalOrders)
 			internalOrders = newInternalOrders(internalOrders)
 			setInternalLights(internalOrders)	
 			elev_set_floor_indicator(elev_get_floor_sensor_signal())
 			setExternalLights(GlobalExternalOrders)	
-			externalOrders = [N_FLOORS][2]int{{0,0},{0,0},{0,0},{0,0}}	
-			Println(GlobalExternalOrders)
-		
+		default:
+			externalOrders = newExternalOrders(externalOrders) 
+			InformationToNetworkUnit(internalOrders,externalOrders,ExternalOrdersToNetwork,InternalOrdersToNetwork,GlobalExternalOrders,UpdatedGlobalExternalOrdersChannel)
+			//setExternalLights(GlobalExternalOrders)
+			internalOrders = newInternalOrders(internalOrders)
+			setInternalLights(internalOrders)	
+			elev_set_floor_indicator(elev_get_floor_sensor_signal())
+			setExternalLights(GlobalExternalOrders)	
 		}
 	}
 	
@@ -403,37 +348,17 @@ func runElevator(){
 }
 
 func Elevator(){
-
-	type order_struct struct{
-    	internal [4]int
-    	external [4][2]int
-    }
-
+	//if getFile == true{
+	//	internalOrders = 
+	//	
+	//}else{
 	internalOrders := [N_FLOORS]int{0,0,0,0}
-	externalOrders := [N_FLOORS][2]int{{0,0},{0,0},{0,0},{0,0}}
-
-	filename := "order_lists"
-	_, err := os.Stat(filename)
-
-	if!(os.IsNotExist(err)){
-
-		dat, err := ioutil.ReadFile(filename)
-    	check(err)
-
-    	orders := new(order_struct)
-    	json.Unmarshal(dat, &orders)
-
-    	internalOrders = orders.internal
-    	externalOrders = orders.external
-
-	}else{
-		write(filename, internalOrders, externalOrders)
-	}
-
-	//Println(read(filename))
+	externalOrders := [N_FLOORS][2]int{{0,0},{0,0},{0,0},{0,0}} 
+	//}
 
 	go runElevator()
-	go lightsAndOrders(internalOrders, DirnChan,GlobalExternalOrdersChannel,ExecutedChannel)
+	go lightsAndOrders(internalOrders,externalOrders, DirnChan,GlobalExternalOrdersChannel)
+	
 
 	Println("Elevator")
 }

@@ -19,7 +19,7 @@ func GetBroadcastIP(MyIP string) string{  //OK
 
 
 func Init() (string,string,string){ //OK
-	BroadcastPort := "30000"
+	BroadcastPort := "30011"
 	MyIP := GetMyIP()
 	BroadcastIP := GetBroadcastIP(MyIP)
 	return BroadcastIP, BroadcastPort,MyIP

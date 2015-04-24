@@ -25,6 +25,7 @@ func CreateStruct(InternalOrdersToNetwork chan [4]int,ExternalOrdersToNetwork ch
 	lastStop := 0
 	executed := false
 	tempFloor := 0
+
 	for{
 		select{
 			case ReceiveLastStop :=<- LastStopChannel:
@@ -45,6 +46,6 @@ func CreateStruct(InternalOrdersToNetwork chan [4]int,ExternalOrdersToNetwork ch
 				tempFloor = floor
 
 		}
-		time.Sleep(25*time.Millisecond) 
+		time.Sleep(10*time.Millisecond) 
 	}	
 }

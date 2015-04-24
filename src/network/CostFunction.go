@@ -76,11 +76,17 @@ func CostFunction(IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_EL
 				for j := 0; j < 4; j++{
 					for k := 0; k < 2; k++{
 						if Structlist[i].Executed == true {
+							Println(Structlist[i].Floor)
 							GlobalExternalOrders[Structlist[i].Floor][0] = 0
+							Println(Structlist[i].Floor)
 							GlobalExternalOrders[Structlist[i].Floor][1] = 0
 
+							
 						}					
 						if Structlist[i].NewExternalOrders[j][k] == 1{
+							Println(Structlist[i].NewExternalOrders)
+							Println(j)
+							Println(k)
 							GlobalExternalOrders[j][k] = 1
 
 						}

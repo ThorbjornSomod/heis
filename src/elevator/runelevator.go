@@ -386,8 +386,9 @@ func lightsAndOrders(internalOrders [N_FLOORS]int,DirnChan chan int,GlobalExtern
 			elev_set_floor_indicator(elev_get_floor_sensor_signal())
 			setExternalLights(GlobalExternalOrders)	
 			externalOrders = [N_FLOORS][2]int{{0,0},{0,0},{0,0},{0,0}}
-			Println(GlobalExternalOrders)	
-		
+
+		default:
+			time.Sleep(25*time.Millisecond)
 		}
 	}
 	

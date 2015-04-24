@@ -311,7 +311,7 @@ func write(filename string, internalOrders [4]int, externalOrders [4][2]int) {
     }
     
     Orders := order_struct{internal:internalOrders, external: externalOrders}
-
+    Println(Orders)
     //Println(Orders)
 
     b,_ := json.Marshal(Orders)
@@ -387,8 +387,8 @@ func lightsAndOrders(internalOrders [N_FLOORS]int,DirnChan chan int,GlobalExtern
 			setExternalLights(GlobalExternalOrders)	
 			externalOrders = [N_FLOORS][2]int{{0,0},{0,0},{0,0},{0,0}}
 
-		default:
-			time.Sleep(25*time.Millisecond)
+		case <- time.After(25*time.Millisecond):
+			continue
 		}
 	}
 	
@@ -404,8 +404,8 @@ func runElevator(){
 func Elevator(){
 
 	type order_struct struct{
-    	internal [4]int
-    	external [4][2]int
+    	Internal [4]int
+    	External [4][2]int
     }
 
 	internalOrders := [N_FLOORS]int{0,0,0,0}
@@ -420,10 +420,14 @@ func Elevator(){
     	check(err)
 
     	orders := new(order_struct)
+
     	json.Unmarshal(dat, &orders)
 
-    	internalOrders = orders.internal
-    	externalOrders = orders.external
+    	internalOrders = orders.Internal
+    	externalOrders = orders.External
+
+    	Println(internalOrders)
+    	Println(externalOrders)
 
 	}else{
 		write(filename, internalOrders, externalOrders)

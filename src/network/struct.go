@@ -2,7 +2,7 @@ package network
 
 import (
 	//."fmt"
-	"time"
+	//"time"
 )
 
 
@@ -46,6 +46,5 @@ func CreateStruct(InternalOrdersToNetwork chan [4]int,ExternalOrdersToNetwork ch
 				tempFloor = floor
 
 		}
-		time.Sleep(10*time.Millisecond) 
 	}	
 }

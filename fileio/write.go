@@ -4,7 +4,7 @@ import (
     "io/ioutil"
     "encoding/json"
     "os"
-    //."fmt"
+    ."fmt"
 )
 
 func check(e error) {
@@ -30,8 +30,34 @@ func write(filename string, internalOrders []int, externalOrders []int) {
     check(err)
 }
 
+func writestruct(filename string, internalOrders []int, externalOrders []int){
+
+    type newstruct struct {
+        Onelist []int
+        Twolist []int
+    }
+
+    if _, err := os.Stat(filename); os.IsNotExist(err) {
+        os.Create(filename)
+    }else{
+        test1 := newstruct{Onelist:internalOrders, Twolist: externalOrders}
+        Println(test1)
+
+        b, _ := json.Marshal(test1)
+
+        os.Stdout.Write(b)
+
+        err := ioutil.WriteFile(filename, b, 0644)
+        check(err)
+    }
+
+}
+
 func main(){
+
     internalOrders := []int{1,2,3,4,7,10}
     externalOrders := []int{3,2,1,9,7,11}
-	write("input.txt",internalOrders, externalOrders)
+
+    writestruct("input.txt", internalOrders, externalOrders)
+
 }

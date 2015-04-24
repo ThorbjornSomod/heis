@@ -28,6 +28,7 @@ func ConnReceive(BroadcastPort string,RecevieStruct chan NetworkInterface){//Rec
 		if err == nil{ 
 			var m NetworkInterface
 			json.Unmarshal(b,&m)
+			Println(m)
 			ReceiveStruct <- m
 			IPchan <- m.IP
 		}else{
@@ -43,7 +44,7 @@ func ConnSend(BroadcastPort string, BroadcastIP string,NetworkChannel chan Netwo
 		information := <- StructChannel				
 		message,_ := json.Marshal(information)	
 		conn.Write(message)
-		time.Sleep(5*time.Millisecond)
+		time.Sleep(50*time.Millisecond)
 
 	}
 }

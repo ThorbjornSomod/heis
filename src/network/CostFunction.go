@@ -31,7 +31,7 @@ func MakeLists( IPchan chan string,IPlistChan chan [N_ELEVATORS]string, ReceiveS
 			if IPlist[i] == IP{
 				allreadyadded = true
 				StructList[i] = Struct
-				IPtimer[i] = time.Now().Add(time.Second*2).UnixNano()/int64(time.Millisecond)
+				IPtimer[i] = time.Now().Add(time.Second*1).UnixNano()/int64(time.Millisecond)
 			}
 		}
 
@@ -50,7 +50,7 @@ func MakeLists( IPchan chan string,IPlistChan chan [N_ELEVATORS]string, ReceiveS
 				if IPlist[i] == "nil"{
 					IPlist[i] = IP
 					StructList[i] = Struct
-					IPtimer[i] = time.Now().Add(time.Second*2).UnixNano()/int64(time.Millisecond)
+					IPtimer[i] = time.Now().Add(time.Second*1).UnixNano()/int64(time.Millisecond)
 					break
 				}
 			}
@@ -60,7 +60,7 @@ func MakeLists( IPchan chan string,IPlistChan chan [N_ELEVATORS]string, ReceiveS
 		IPlistChan <- IPlist
 		Println(IPlist)
 	}
-
+	time.Sleep(time.Millisecond)
 }
 
 func CostFunction(IPlistChan chan [N_ELEVATORS]string, StructListChan chan [N_ELEVATORS]NetworkInterface, MyIP string,ExecuteListChan chan []int,DirectionChan chan int,GlobalExternalOrdersChannel chan [4][2]int){

@@ -370,14 +370,20 @@ func lightsAndOrders(internalOrders [N_FLOORS]int,DirnChan chan int,GlobalExtern
 			setInternalLights(internalOrders)	
 			elev_set_floor_indicator(elev_get_floor_sensor_signal())
 	for{
+
 		select{
+
 		case delete :=<-DeleteOrderChan:
 			floor := elev_get_floor_sensor_signal()
 			internalOrders = clearInternalOrders(delete,floor,internalOrders)
 			ExecutedChannel <- delete
 			externalOrders = clearExternalOrders(delete,floor,externalOrders)
 
-		case GlobalExternalOrders :=<- GlobalExternalOrdersChannel:
+		case temp :=<- GlobalExternalOrdersChannel:
+
+			GlobalExternalOrders = temp
+
+		default:
 
 			externalOrders = newExternalOrders(externalOrders) 
 			InformationToNetworkUnit(internalOrders,externalOrders,ExternalOrdersToNetwork,InternalOrdersToNetwork)
@@ -385,13 +391,8 @@ func lightsAndOrders(internalOrders [N_FLOORS]int,DirnChan chan int,GlobalExtern
 			setInternalLights(internalOrders)	
 			elev_set_floor_indicator(elev_get_floor_sensor_signal())
 			setExternalLights(GlobalExternalOrders)	
-			externalOrders = [N_FLOORS][2]int{{0,0},{0,0},{0,0},{0,0}}
-
-		case <- time.After(25*time.Millisecond):
-			continue
 		}
 	}
-	
 }
 
 func runElevator(){
